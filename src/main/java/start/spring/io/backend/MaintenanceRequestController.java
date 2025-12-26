@@ -22,51 +22,46 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/maintenance-requests")
 public class MaintenanceRequestController {
 
-    private final MaintenanceRequestRepository repository;
+    private final MaintenanceRequestService service;
 
-    /** Injects the JPA repository. */
-    public MaintenanceRequestController(MaintenanceRequestRepository repository) {
-        this.repository = repository;
+    /** Injects the service layer. */
+    public MaintenanceRequestController(MaintenanceRequestService service) {
+        this.service = service;
     }
 
     /** Lists all maintenance requests. */
-    @GetMapping
+    @GetMapping(value = {"", "/"})
     public List<MaintenanceRequest> getAll() {
-        return repository.findAll();
+        return service.getAllRequests();
     }
 
     /** Gets a request by id, returns 404 if not found. */
     @GetMapping("/{id}")
     public MaintenanceRequest getOne(@PathVariable Integer id) {
-        return repository.findById(id)
+        return service.getRequestById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Maintenance request not found"));
     }
 
     /** Creates a new maintenance request (201 Created). */
-    @PostMapping
+    @PostMapping(value = {"", "/"})
     @ResponseStatus(HttpStatus.CREATED)
     public MaintenanceRequest create(@RequestBody MaintenanceRequest request) {
-        request.setRequestId(null);
-        return repository.save(request);
+        return service.createRequest(request);
     }
 
     /** Updates an existing request by id, 404 if not found. */
     @PutMapping("/{id}")
     public MaintenanceRequest update(@PathVariable Integer id, @RequestBody MaintenanceRequest request) {
-        if (!repository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Maintenance request not found");
-        }
-        request.setRequestId(id);
-        return repository.save(request);
+        return service.updateRequest(id, request)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Maintenance request not found"));
     }
 
     /** Deletes a request by id (204 No Content), 404 if not found. */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Integer id) {
-        if (!repository.existsById(id)) {
+        if (!service.deleteRequest(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Maintenance request not found");
         }
-        repository.deleteById(id);
     }
 }
