@@ -1,4 +1,4 @@
-package start.spring.io.backend;
+package start.spring.io.backend.MaintenanceRequest;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

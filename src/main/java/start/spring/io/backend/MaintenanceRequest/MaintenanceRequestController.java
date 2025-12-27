@@ -1,4 +1,4 @@
-package start.spring.io.backend;
+package start.spring.io.backend.MaintenanceRequest;
 
 import java.util.List;
 
