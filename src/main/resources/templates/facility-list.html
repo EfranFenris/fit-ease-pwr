@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Gestión de Facilities</title>
+    <style>
+        body { font-family: Arial; margin: 40px; background: #f9f9f9; }
+        h1 { color: #333; }
+        table { width: 80%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #4CAF50; color: white; }
+        tr:nth-child(even) { background: #f2f2f2; }
+        a.button, button { padding: 6px 12px; margin: 2px; background: #4CAF50; color: white; text-decoration: none; border: none; border-radius: 4px; cursor: pointer; }
+        a.button.delete { background: #f44336; }
+        form input { padding: 6px; margin: 4px 0; width: 200px; }
+    </style>
+</head>
+<body>
+<h1>Gestión de Facilities</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Status</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="facility : ${facilities}">
+        <td th:text="${facility.facilityId}"></td>
+        <td th:text="${facility.name}"></td>
+        <td th:text="${facility.type}"></td>
+        <td th:text="${facility.status}"></td>
+        <td>
+            <a th:href="@{/facilities/edit/{id}(id=${facility.facilityId})}" class="button">Editar</a>
+            <a th:href="@{/facilities/delete/{id}(id=${facility.facilityId})}" class="button delete"
+               onclick="return confirm('¿Seguro que quieres borrar esta facility?');">Borrar</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Añadir Facility</h2>
+<form th:action="@{/facilities/add}" th:object="${newFacility}" method="post">
+    <input type="text" th:field="*{name}" placeholder="Nombre" required/>
+    <input type="text" th:field="*{type}" placeholder="Tipo" required/>
+    <input type="text" th:field="*{status}" placeholder="Estado" required/>
+    <button type="submit">Añadir</button>
+</form>
+
+</body>
+</html>
