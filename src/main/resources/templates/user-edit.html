@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Editar Usuario</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f9f9f9;
+        }
+        h1 { color: #333; }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 6px;
+            width: 350px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        a {
+            display: inline-block;
+            margin-top: 10px;
+            color: #4CAF50;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+<h1>Edit User</h1>
+
+<form th:action="@{/users/edit/{id}(id=${user.userId})}" th:object="${user}" method="post">
+    <input type="hidden" th:field="*{userId}" />
+    <input type="text" th:field="*{name}" placeholder="Name" required/>
+    <input type="email" th:field="*{email}" placeholder="Email" required/>
+    <input type="text" th:field="*{password}" placeholder="Password" required/>
+    <select th:field="*{role}">
+        <option value="admin" th:selected="${user.role=='admin'}">admin</option>
+        <option value="user" th:selected="${user.role=='user'}">user</option>
+    </select>
+    <button type="submit">Save Changes</button>
+</form>
+
+<a th:href="@{/users}">← Go back</a>
+</body>
+</html>
