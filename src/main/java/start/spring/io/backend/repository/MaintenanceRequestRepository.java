@@ -9,3 +9,4 @@ import start.spring.io.backend.model.MaintenanceRequest;
  */
 public interface MaintenanceRequestRepository extends JpaRepository<MaintenanceRequest, Integer> {
 }
+

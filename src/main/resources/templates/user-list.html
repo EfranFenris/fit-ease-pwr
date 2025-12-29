@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Gestión de Usuarios</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f9f9f9;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        table {
+            width: 80%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        a.button, button {
+            padding: 6px 12px;
+            margin: 2px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        a.button.delete { background-color: #f44336; }
+        form { margin-top: 20px; }
+        input, select {
+            padding: 6px;
+            margin: 4px 0;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+<h1>USERS</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="user : ${users}">
+        <td th:text="${user.userId}"></td>
+        <td th:text="${user.name}"></td>
+        <td th:text="${user.email}"></td>
+        <td th:text="${user.role}"></td>
+        <td>
+            <a th:href="@{/users/edit/{id}(id=${user.userId})}" class="button">Editar</a>
+            <a th:href="@{/users/delete/{id}(id=${user.userId})}" class="button delete"
+               onclick="return confirm('Are you sure you want to delete this user?');">Borrar</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Add User</h2>
+<form th:action="@{/users/add}" th:object="${newUser}" method="post">
+    <input type="text" th:field="*{name}" placeholder="Name" required/>
+    <input type="email" th:field="*{email}" placeholder="Email" required/>
+    <input type="text" th:field="*{password}" placeholder="Password" required/>
+    <select th:field="*{role}">
+        <option value="admin">admin</option>
+        <option value="user">user</option>
+    </select>
+    <button type="submit">Add</button>
+</form>
+</body>
+</html>
