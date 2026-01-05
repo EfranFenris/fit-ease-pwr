@@ -1,70 +1,95 @@
 package start.spring.io.backend.controller;
 
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 import java.util.List;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
-
+import java.util.Map;
+import java.util.stream.Collectors;
 import start.spring.io.backend.model.MaintenanceRequest;
 import start.spring.io.backend.service.MaintenanceRequestService;
+import start.spring.io.backend.service.UserService;
+import start.spring.io.backend.service.FacilityService;
 
 /**
- * Simple REST controller for MaintenanceRequest CRUD.
- * Basic endpoints to test create, read, update and delete.
+ * Controller for MaintenanceRequest CRUD.
+ * Provides both HTML views and REST API endpoints.
  */
-@RestController
+@Controller
 @RequestMapping("/maintenance-requests")
 public class MaintenanceRequestController {
 
-    private final MaintenanceRequestService service;
+    private final MaintenanceRequestService maintenanceRequestService;
+    private final UserService userService;
+    private final FacilityService facilityService;
 
-    /** Injects the service layer. */
-    public MaintenanceRequestController(MaintenanceRequestService service) {
-        this.service = service;
+    public MaintenanceRequestController(MaintenanceRequestService maintenanceRequestService,
+                                       UserService userService,
+                                       FacilityService facilityService) {
+        this.maintenanceRequestService = maintenanceRequestService;
+        this.userService = userService;
+        this.facilityService = facilityService;
     }
 
-    /** Lists all maintenance requests. */
-    @GetMapping(value = {"", "/"})
-    public List<MaintenanceRequest> getAll() {
-        return service.getAllRequests();
+    /** Display list of all maintenance requests with form to add new. */
+    @GetMapping
+    public String listMaintenanceRequests(Model model) {
+        List<start.spring.io.backend.model.User> users = userService.getAllUsers();
+        List<start.spring.io.backend.model.User> maintenanceUsers = users.stream()
+            .filter(u -> "maintenance".equalsIgnoreCase(u.getRole()))
+            .toList();
+        List<start.spring.io.backend.model.Facility> facilities = facilityService.getAllFacilities();
+
+        Map<Integer, String> userNames = users.stream()
+            .collect(Collectors.toMap(start.spring.io.backend.model.User::getUserId, start.spring.io.backend.model.User::getName));
+        Map<Integer, String> facilityNames = facilities.stream()
+            .collect(Collectors.toMap(start.spring.io.backend.model.Facility::getFacilityId, start.spring.io.backend.model.Facility::getName));
+
+        model.addAttribute("maintenanceRequests", maintenanceRequestService.getAllRequests());
+        model.addAttribute("users", users);
+        model.addAttribute("maintenanceUsers", maintenanceUsers);
+        model.addAttribute("facilities", facilities);
+        model.addAttribute("userNames", userNames);
+        model.addAttribute("facilityNames", facilityNames);
+        model.addAttribute("newRequest", new MaintenanceRequest());
+        return "maintenance-request-list";
     }
 
-    /** Gets a request by id, returns 404 if not found. */
-    @GetMapping("/{id}")
-    public MaintenanceRequest getOne(@PathVariable Integer id) {
-        return service.getRequestById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Maintenance request not found"));
+    /** Add new maintenance request. */
+    @PostMapping("/add")
+    public String addMaintenanceRequest(@ModelAttribute("newRequest") MaintenanceRequest request) {
+        maintenanceRequestService.createRequest(request);
+        return "redirect:/maintenance-requests";
     }
 
-    /** Creates a new maintenance request (201 Created). */
-    @PostMapping(value = {"", "/"})
-    @ResponseStatus(HttpStatus.CREATED)
-    public MaintenanceRequest create(@RequestBody MaintenanceRequest request) {
-        return service.createRequest(request);
+    /** Show edit form for maintenance request. */
+    @GetMapping("/edit/{id}")
+    public String editMaintenanceRequestForm(@PathVariable Integer id, Model model) {
+        MaintenanceRequest request = maintenanceRequestService.getRequestById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid maintenance request Id: " + id));
+        List<start.spring.io.backend.model.User> users = userService.getAllUsers();
+        List<start.spring.io.backend.model.User> maintenanceUsers = users.stream()
+            .filter(u -> "maintenance".equalsIgnoreCase(u.getRole()))
+            .toList();
+        model.addAttribute("request", request);
+        model.addAttribute("users", users);
+        model.addAttribute("maintenanceUsers", maintenanceUsers);
+        model.addAttribute("facilities", facilityService.getAllFacilities());
+        return "maintenance-request-edit";
     }
 
-    /** Updates an existing request by id, 404 if not found. */
-    @PutMapping("/{id}")
-    public MaintenanceRequest update(@PathVariable Integer id, @RequestBody MaintenanceRequest request) {
-        return service.updateRequest(id, request)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Maintenance request not found"));
+    /** Update maintenance request. */
+    @PostMapping("/edit/{id}")
+    public String editMaintenanceRequest(@PathVariable Integer id,
+                                        @ModelAttribute("request") MaintenanceRequest request) {
+        maintenanceRequestService.updateRequest(id, request);
+        return "redirect:/maintenance-requests";
     }
 
-    /** Deletes a request by id (204 No Content), 404 if not found. */
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Integer id) {
-        if (!service.deleteRequest(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Maintenance request not found");
-        }
+    /** Delete maintenance request. */
+    @GetMapping("/delete/{id}")
+    public String deleteMaintenanceRequest(@PathVariable Integer id) {
+        maintenanceRequestService.deleteRequest(id);
+        return "redirect:/maintenance-requests";
     }
 }

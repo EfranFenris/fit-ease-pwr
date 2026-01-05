@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Maintenance Requests Management</title>
+    <style>
+        body { font-family: Arial; margin: 40px; background: #f9f9f9; }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #4CAF50; color: white; }
+        tr:nth-child(even) { background: #f2f2f2; }
+        a.button, button { padding: 6px 12px; margin: 2px; background: #4CAF50; color: white; text-decoration: none; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        a.button.delete { background: #f44336; }
+        input, select, textarea { padding: 6px; margin: 2px; font-size: 12px; }
+        input[type="text"], input[type="datetime-local"], select, textarea { width: 180px; }
+        textarea { height: 60px; resize: vertical; }
+        .actions { min-width: 200px; }
+        form.add-form { background: #fff; padding: 16px; border: 1px solid #ddd; border-radius: 6px; }
+        .form-row { display: flex; align-items: center; margin-bottom: 10px; gap: 10px; flex-wrap: wrap; }
+        .form-row label { width: 120px; font-weight: bold; }
+        .form-row textarea { width: 400px; height: 70px; }
+    </style>
+</head>
+<body>
+<h1>MAINTENANCE REQUESTS</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>User</th>
+        <th>Facility</th>
+        <th>Staff</th>
+        <th>Description</th>
+        <th>Status</th>
+        <th>Type</th>
+        <th>Severity</th>
+        <th>Report Date</th>
+        <th class="actions">Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="req : ${maintenanceRequests}">
+        <td th:text="${req.requestId}"></td>
+        <td th:text="${userNames[req.userId]}"></td>
+        <td th:text="${facilityNames[req.facilityId]}"></td>
+        <td th:text="${req.staffId != null ? userNames[req.staffId] : '—'}"></td>
+        <td th:text="${#strings.abbreviate(req.description, 30)}"></td>
+        <td th:text="${req.status}"></td>
+        <td th:text="${req.issueType}"></td>
+        <td th:text="${req.severity}"></td>
+        <td th:text="${#temporals.format(req.reportDate, 'dd/MM/yyyy HH:mm')}"></td>
+        <td class="actions">
+            <a th:href="@{/maintenance-requests/edit/{id}(id=${req.requestId})}" class="button">Edit</a>
+            <a th:href="@{/maintenance-requests/delete/{id}(id=${req.requestId})}" class="button delete"
+               onclick="return confirm('Are you sure?');">Delete</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Add Maintenance Request</h2>
+<form class="add-form" th:action="@{/maintenance-requests/add}" th:object="${newRequest}" method="post">
+    <div class="form-row">
+        <label>User:</label>
+        <select th:field="*{userId}" required>
+            <option value="">Select User</option>
+            <option th:each="user : ${users}" th:value="${user.userId}" th:text="${user.name}"></option>
+        </select>
+    </div>
+
+    <div class="form-row">
+        <label>Facility:</label>
+        <select th:field="*{facilityId}" required>
+            <option value="">Select Facility</option>
+            <option th:each="facility : ${facilities}" th:value="${facility.facilityId}" th:text="${facility.name}"></option>
+        </select>
+    </div>
+
+    <div class="form-row">
+        <label>Staff:</label>
+        <select th:field="*{staffId}">
+            <option value="">None</option>
+            <option th:each="user : ${maintenanceUsers}" th:value="${user.userId}" th:text="${user.name}"></option>
+        </select>
+    </div>
+
+    <div class="form-row">
+        <label>Description:</label>
+        <textarea th:field="*{description}" placeholder="Description" required></textarea>
+    </div>
+
+    <div class="form-row">
+        <label>Status:</label>
+        <select th:field="*{status}" required>
+            <option value="OPEN">OPEN</option>
+            <option value="IN_PROGRESS">IN_PROGRESS</option>
+            <option value="CLOSED">CLOSED</option>
+        </select>
+    </div>
+
+    <div class="form-row">
+        <label>Issue Type:</label>
+        <input type="text" th:field="*{issueType}" placeholder="Issue Type" required/>
+    </div>
+
+    <div class="form-row">
+        <label>Severity:</label>
+        <select th:field="*{severity}" required>
+            <option value="LOW">LOW</option>
+            <option value="MEDIUM">MEDIUM</option>
+            <option value="HIGH">HIGH</option>
+            <option value="CRITICAL">CRITICAL</option>
+        </select>
+    </div>
+
+    <div class="form-row">
+        <label>Report Date:</label>
+        <input type="datetime-local" th:field="*{reportDate}" required/>
+    </div>
+
+    <button type="submit">Add Request</button>
+</form>
+
+</body>
+</html>

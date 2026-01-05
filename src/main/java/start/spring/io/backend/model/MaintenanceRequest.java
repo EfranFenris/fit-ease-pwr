@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import org.springframework.format.annotation.DateTimeFormat;
 
 @Entity
 @Table(name = "maintenance_request")
@@ -44,6 +45,7 @@ public class MaintenanceRequest {
 
     /** Report date-time. */
     @Column(name = "reportdate", nullable = false)
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime reportDate;
 
     /** Issue type (category). */
