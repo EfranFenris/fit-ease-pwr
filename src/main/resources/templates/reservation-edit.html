@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Edit Reservation</title>
+</head>
+<body>
+<h1>Edit Reservation</h1>
+
+<form th:action="@{/reservations/edit/{id}(id=${reservation.reservationId})}"
+      th:object="${reservation}" method="post">
+
+  <input type="hidden" th:field="*{reservationId}" />
+
+  <input th:field="*{userId}" required />
+  <input th:field="*{facilityId}" required />
+
+  <input type="datetime-local" th:field="*{date}" required />
+  <input type="time" th:field="*{startTime}" required />
+  <input type="time" th:field="*{endTime}" required />
+
+  <input th:field="*{participants}" required />
+  <input th:field="*{purpose}" />
+
+  <button type="submit">Save</button>
+</form>
+
+<a th:href="@{/reservations}">Back</a>
+</body>
+</html>
