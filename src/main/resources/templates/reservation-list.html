@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Reservations</title>
+  <style>
+    body { font-family: Arial; margin: 40px; background: #f9f9f9; }
+    h1 { color: #333; margin-bottom: 15px; }
+
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 1100px;
+    }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+    th { background: #4CAF50; color: white; }
+    tr:nth-child(even) { background: #f2f2f2; }
+
+    .actions { white-space: nowrap; }
+
+    a.button, button {
+      padding: 6px 12px;
+      margin: 2px;
+      background: #4CAF50;
+      color: white;
+      text-decoration: none;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-block;
+      font-size: 14px;
+    }
+    a.button.delete { background: #f44336; }
+
+    h2 { margin-top: 25px; color: #333; }
+
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .form-row input, .form-row select {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      min-width: 140px;
+      box-sizing: border-box;
+    }
+
+    .form-row input[type="number"] { width: 140px; }
+    .form-row input[type="datetime-local"] { min-width: 210px; }
+    .form-row input[type="time"] { width: 140px; }
+
+    .hint {
+      font-size: 13px;
+      color: #666;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Gestión de Reservations</h1>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>User</th>
+          <th>Facility</th>
+          <th>Date</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Participants</th>
+          <th>Purpose</th>
+          <th class="actions">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr th:each="r : ${reservations}">
+          <td th:text="${r.reservationId}"></td>
+          <td th:text="${r.userId}"></td>
+          <td th:text="${r.facilityId}"></td>
+
+          <!-- LocalDateTime prints a bit ugly by default; this cleans it up -->
+          <td th:text="${#temporals.format(r.date, 'yyyy-MM-dd HH:mm')}"></td>
+
+          <td th:text="${r.startTime}"></td>
+          <td th:text="${r.endTime}"></td>
+          <td th:text="${r.participants}"></td>
+          <td th:text="${r.purpose}"></td>
+
+          <td class="actions">
+            <a th:href="@{/reservations/edit/{id}(id=${r.reservationId})}" class="button">Editar</a>
+            <a th:href="@{/reservations/delete/{id}(id=${r.reservationId})}"
+               class="button delete"
+               onclick="return confirm('¿Seguro que quieres borrar esta reservation?');">
+              Borrar
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Añadir Reservation</h2>
+
+    <form th:action="@{/reservations/add}" th:object="${newReservation}" method="post">
+      <div class="form-row">
+        <input type="number" th:field="*{userId}" placeholder="userId" required />
+        <input type="number" th:field="*{facilityId}" placeholder="facilityId" required />
+
+        <!-- If your entity uses LocalDateTime, this input fits nicely -->
+        <input type="datetime-local" th:field="*{date}" required />
+
+        <input type="time" th:field="*{startTime}" required />
+        <input type="time" th:field="*{endTime}" required />
+
+        <input type="number" th:field="*{participants}" placeholder="participants" min="1" required />
+        <input type="text" th:field="*{purpose}" placeholder="purpose" />
+
+        <button type="submit">Añadir</button>
+      </div>
+
+      <div class="hint">
+        Tip: userId y facilityId tienen que existir en la BD, si no, MySQL te dará error por foreign key.
+      </div>
+    </form>
+  </div>
+</body>
+</html>
