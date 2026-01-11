@@ -1,6 +1,7 @@
 package start.spring.io.backend.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,7 @@ public class PenaltyService {
     
     private final PenaltyRepository repository;
 
+    /** Injects the repository dependency. */
     public PenaltyService(PenaltyRepository repository) {
         this.repository = repository;
     }
@@ -22,6 +24,11 @@ public class PenaltyService {
     }
 
     /** Get a penalty by id. */
+    public Optional<Penalty> getPenaltyById(Integer id) {
+        return repository.findById(id);
+    }
+
+    /** Create a new penalty. */
     public Penalty createPenalty(Penalty penalty) {
         penalty.setPenaltyId(null);
         return repository.save(penalty);
@@ -30,6 +37,7 @@ public class PenaltyService {
     /** Update an existing penalty. */
     public Penalty updatePenalty(Integer id, Penalty penaltyDetails) {
         return repository.findById(id).map(penalty -> {
+            penalty.setPenaltyId(penaltyDetails.getPenaltyId());
             penalty.setUserId(penaltyDetails.getUserId());
             penalty.setDescription(penaltyDetails.getDescription());
             penalty.setDatehour(penaltyDetails.getDatehour());

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Penalty</title>
+    <style>
+        body { font-family: Arial; margin: 40px; background: #f9f9f9; }
+        h1 { color: #333; }
+        form { background: #fff; padding: 20px; border-radius: 6px; width: 350px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 8px; margin: 8px 0; box-sizing: border-box; }
+        button { background: #4CAF50; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; }
+        a { display: inline-block; margin-top: 10px; color: #4CAF50; text-decoration: none; }
+    </style>    
+</head>
+<body>
+    <h1>Edit Penalty</h1>
+
+    <form th:action="@{/penalties/edit/{id}(id=${penalty.penaltyId})}" th:object="${penalty}" method="post">
+        <input type="hidden" th:field="*{penaltyId}" />
+        <input type="hidden" th:field="*{userId}" />
+        <input type="text" th:field="*{description}" placeholder="Description" required/>
+        <input type="datetime-local" th:field="*{datehour}" placeholder="Datehour" required/>
+        <button type="submit">Save Changes</button>
+    </form>
+
+    <a th:href="@{/penalties}">← Back to List</a>
+    
+</body>
+</html>

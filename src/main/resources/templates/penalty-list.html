@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Penalty Management</title>
+    <style>
+        body { font-family: Arial; margin: 40px; background: #f9f9f9; }
+        h1 { color: #333; }
+        table { width: 80%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #4CAF50; color: white; }
+        tr:nth-child(even) { background: #f2f2f2; }
+        a.button, button { padding: 6px 12px; margin: 2px; background: #4CAF50; color: white; text-decoration: none; border: none; border-radius: 4px; cursor: pointer; }
+        a.button.delete { background: #f44336; }
+        form input { padding: 6px; margin: 4px 0; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>Penalty Management</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Description</th>
+                <th>DateHour</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="penalty : ${penalties}">
+                <td th:text="${penalty.penaltyId}"></td>
+                <td th:text="${penalty.userId}"></td>
+                <td th:text="${penalty.description}"></td>
+                <td th:text="${penalty.datehour}"></td>
+                <td>
+                    <a th:href="@{/penalties/edit/{id}(id=${penalty.penaltyId})}" class="button">Edit</a>
+                    <a th:href="@{/penalties/delete/{id}(id=${penalty.penaltyId})}" class="button delete"
+                       onclick="return confirm('Are you sure you want to delete this penalty?');">Delete</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Add Penalty</h2>
+    <form th:action="@{/penalties/add}" th:object="${newPenalty}" method="post">
+        <input type="number" th:field="*{userId}" placeholder="User ID" required/>
+        <input type="text" th:field="*{description}" placeholder="Description" required/>
+        <input type="datetime-local" th:field="*{datehour}" placeholder="Date and Time" required/>
+        <button type="submit">Add</button>
+    </form>
+</body>
+</html>
