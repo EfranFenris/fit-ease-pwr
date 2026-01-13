@@ -53,4 +53,5 @@ public class FacilityController {
         service.deleteFacility(id);
         return "redirect:/facilities";
     }
+
 }

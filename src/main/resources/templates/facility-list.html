@@ -36,6 +36,7 @@
             <a th:href="@{/facilities/edit/{id}(id=${facility.facilityId})}" class="button">Editar</a>
             <a th:href="@{/facilities/delete/{id}(id=${facility.facilityId})}" class="button delete"
                onclick="return confirm('¿Seguro que quieres borrar esta facility?');">Borrar</a>
+            <a th:href="@{/maintenance-requests/maintenance-request-form/{id}(id=${facility.facilityId})}" class="button">Report Issue</a>
         </td>
     </tr>
     </tbody>

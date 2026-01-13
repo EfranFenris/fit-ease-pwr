@@ -5,7 +5,7 @@ DROP TABLE IF EXISTS reservation CASCADE;
 DROP TABLE IF EXISTS facility CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
-CREATE TABLE users (
+CREATE TABLE users ( -- in PostgreSQL, 'user' is a reserved keyword
   userid SERIAL PRIMARY KEY,
   name VARCHAR(150) NOT NULL,
   email VARCHAR(254) UNIQUE NOT NULL,

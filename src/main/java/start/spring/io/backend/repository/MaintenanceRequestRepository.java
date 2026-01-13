@@ -1,6 +1,9 @@
 package start.spring.io.backend.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import start.spring.io.backend.model.MaintenanceRequest;
 
 /**
@@ -8,5 +11,8 @@ import start.spring.io.backend.model.MaintenanceRequest;
  * Provides basic CRUD operations.
  */
 public interface MaintenanceRequestRepository extends JpaRepository<MaintenanceRequest, Integer> {
+
+    List<MaintenanceRequest> findByStatus(String status);
+
 }
 

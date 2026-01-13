@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Report Issue</title>
+    <style>
+        /* --- Estructura Base --- */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label.main-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+        /* Estilo para el dropdown y otros inputs */
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+            background-color: #fff;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* --- Estilos de la Info Box --- */
+        .info {
+            background-color: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+        }
+        .info p {
+            margin: 0;
+            color: #1976D2;
+        }
+
+        /* --- Selector de Severidad (Estilo de Tarjetas) --- */
+        .severity-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 5px;
+        }
+        .severity-input {
+            display: none;
+        }
+        .severity-card {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: #fff;
+            font-weight: normal;
+        }
+        .severity-card:hover {
+            border-color: #ccc;
+        }
+        .dot {
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            margin-right: 15px;
+            display: inline-block;
+        }
+        .low .dot { background-color: #f1c40f; }
+        .medium .dot { background-color: #e67e22; }
+        .high .dot { background-color: #e74c3c; }
+
+        .label-content {
+            font-size: 14px;
+            color: #555;
+        }
+        .label-content strong {
+            color: #333;
+        }
+
+        /* Estados de Selección (:checked) */
+        #sev-low:checked + .low {
+            border-color: #f1c40f;
+            background-color: #fffdf0;
+        }
+        #sev-medium:checked + .medium {
+            border-color: #e67e22;
+            background-color: #fff7f0;
+        }
+        #sev-high:checked + .high {
+            border-color: #e74c3c;
+            background-color: #fff5f5;
+        }
+
+        /* --- Grupo de Botones --- */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn-submit {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-submit:hover {
+            background-color: #0056b3;
+        }
+        .btn-cancel {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-cancel:hover {
+            background-color: #545b62;
+        }
+
+        /* --- Nota Final --- */
+        .note {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 13px;
+            color: #777;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            border: 1px solid #eee;
+        }
+
+        /* --- Estilos del Panel Principal --- */
+        .main-panel {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        .btn-filter {
+            display: inline-block;
+            padding: 10px 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-filter:hover {
+            background-color: #0056b3;
+        }
+        .btn-filter.active {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+        .request-card {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .text-center {
+            text-align: center;
+        }
+        .py-5 {
+            padding-top: 3rem !important;
+            padding-bottom: 3rem !important;
+        }
+        .text-muted {
+            color: #6c757d !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Maintenance Request Form    </h1>
+        
+        <div class="info">
+            <p><strong>Facility ID:</strong> <span th:text="${facilityId}"></span></p>
+        </div>
+
+        <form th:action="@{/maintenance-requests/maintenance-request-form}" th:object="${newRequest}" method="post">
+            
+            <input type="hidden" name="facilityId" th:value="${facilityId}">                
+
+            <input type="hidden" name="from" value="facilities" />
+
+            <div class="form-group">
+                <label class="main-label" for="issueType">Issue Type</label>
+                <select id="issueType" th:field="*{issueType}" required>
+                    <option value="" disabled selected>Select the type of issue...</option>
+                    <option value="Surface in poor condition">Surface in poor condition</option>
+                    <option value="Lighting issue">Lighting issue</option>
+                    <option value="Broken equipment">Broken equipment</option>
+                    <option value="Cleanliness / Waste">Cleanliness / Waste</option>
+                    <option value="Structural damage">Structural damage</option>
+                    <option value="Other">Other (Please specify in description)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="main-label">Severity Level</label>
+                <div class="severity-selector">
+                    <input type="radio" th:field="*{severity}" value="LOW" id="sev-low" class="severity-input" required>
+                    <label for="sev-low" class="severity-card low">
+                        <span class="dot"></span>
+                        <span class="label-content">
+                            <strong>Low</strong> - Does not affect use
+                        </span>
+                    </label>
+
+                    <input type="radio" th:field="*{severity}" value="MEDIUM" id="sev-medium" class="severity-input">
+                    <label for="sev-medium" class="severity-card medium">
+                        <span class="dot"></span>
+                        <span class="label-content">
+                            <strong>Medium</strong> - Limited use
+                        </span>
+                    </label>
+
+                    <input type="radio" th:field="*{severity}" value="HIGH" id="sev-high" class="severity-input">
+                    <label for="sev-high" class="severity-card high">
+                        <span class="dot"></span>
+                        <span class="label-content">
+                            <strong>High</strong> - Cannot be used
+                        </span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="main-label" for="description">Detailed Description</label>
+                <textarea id="description" 
+                          th:field="*{description}"
+                          placeholder="Describe the issue in detail. For example: exact location, condition of damage, etc."
+                          maxlength="200"
+                          required></textarea>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn-submit">Submit</button>
+                <a th:href="@{/facilities}" style="text-decoration: none;">
+                    <button type="button" class="btn-cancel">Cancel</button>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="main-panel">
+        <h1>Maintenance Requests Dashboard</h1>
+
+        <div class="filter-group">
+            <a th:href="@{/maintenance-requests/dashboard}" class="btn-filter"
+                th:classappend="${selectedStatus == null or selectedStatus == ''} ? ' active' : ''">All</a>
+
+            <a th:each="s : ${#lists.arrayList('OPEN','IN_PROGRESS','CLOSED','PENDING')}"
+                th:href="@{/maintenance-requests/dashboard(status=${s})}" class="btn-filter"
+                th:classappend="${selectedStatus == s} ? ' active' : ''" th:text="${s}">STATUS</a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(requests)}" class="text-center py-5">
+            <p class="text-muted">No requests found for this filter.</p>
+        </div>
+
+        <div th:each="r : ${requests}" class="request-card">
+            <!-- rest of card content -->
+        </div>
+    </div>
+</body>
+</html>

@@ -32,6 +32,11 @@ public class MaintenanceRequestService {
         return repository.findById(id);
     }
 
+    /** Get maintenance requests by status. */
+    public List<MaintenanceRequest> getRequestsByStatus(String status) {
+        return repository.findByStatus(status);
+    }
+
     /** Create a new maintenance request. */
     public MaintenanceRequest createRequest(MaintenanceRequest request) {
         request.setRequestId(null);
