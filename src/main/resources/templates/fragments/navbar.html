@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:fragment="nav-header">
+        <style>
+            .main-navbar {
+                background: #ffffff;
+                width: 100%; /* Pantalla completa */
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                border-bottom: 1px solid #e2e8f0;
+                font-family: 'Segoe UI', sans-serif;
+            }
+
+            /* LA MAGIA DEL CENTRADO: CSS Grid */
+            .nav-grid-container {
+                display: grid;
+                grid-template-columns: 1fr auto 1fr; /* Tres columnas: laterales flexibles, centro exacto */
+                align-items: center;
+                width: 100%;
+                padding: 10px 40px;
+                box-sizing: border-box; /* Evita que el padding sume ancho */
+            }
+
+            .nav-column-left { display: flex; align-items: center; gap: 15px; }
+            .nav-column-center { 
+                list-style: none; 
+                display: flex; 
+                gap: 35px; 
+                margin: 0; 
+                padding: 0;
+                justify-content: center; /* Asegura el centro dentro de su celda */
+            }
+            .nav-column-right { display: flex; justify-content: flex-end; align-items: center; }
+
+            .nav-item {
+                text-decoration: none;
+                color: #64748b;
+                font-weight: 600;
+                font-size: 0.95rem;
+                transition: color 0.2s;
+            }
+            .nav-item:hover, .nav-item.active { color: #5D5FEF; }
+            
+            .auth-text {
+                background: none;
+                border: none;
+                color: #64748b;
+                font-weight: 600;
+                font-size: 0.9rem;
+                cursor: pointer;
+                text-decoration: none;
+                transition: color 0.2s;
+            }
+            .auth-text:hover { color: #ef4444; }
+        </style>
+    </th:block>
+</head>
+<body>
+    <nav th:fragment="navbar" class="main-navbar">
+        <div class="nav-grid-container">
+            
+            <div class="nav-column-left">
+                <a th:href="@{/dashboard}">
+                    <img th:src="@{/images/logo.png}" alt="Logo" style="height: 42px; width: auto;">
+                </a>
+
+            </div>
+            <ul class="nav-column-center">
+                <li><a th:href="@{/facilities}" class="nav-item">Facilities</a></li>
+                <li sec:authorize="isAuthenticated()"><a th:href="@{/reservations}" class="nav-item">Reservations</a></li>
+                <li sec:authorize="isAuthenticated()"><a th:href="@{/maintenance-requests/dashboard}" class="nav-item active">Maintenance</a></li>
+                <li sec:authorize="isAuthenticated()"><a th:href="@{/users}" class="nav-item">Users</a></li>
+            </ul>
+
+            <div class="nav-column-right">
+                <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="auth-text">Log in</a>
+                <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display:inline;">
+                    <button type="submit" class="auth-text">Log out</button>
+                </form>
+            </div>
+
+        </div>
+    </nav>
+</body>
+</html>

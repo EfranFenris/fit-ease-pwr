@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import start.spring.io.backend.dto.MaintenanceRequestDTO;
 import start.spring.io.backend.model.MaintenanceRequest;
+import start.spring.io.backend.model.User;
 import start.spring.io.backend.service.FacilityService;
 import start.spring.io.backend.service.MaintenanceRequestService;
 import start.spring.io.backend.service.UserService;
@@ -105,30 +108,40 @@ public class MaintenanceRequestController {
     /** Show form to create a new maintenance request. */
     @GetMapping("/maintenance-request-form/{facilityId}")
     public String showMaintenanceRequestForm(@PathVariable Integer facilityId, Model model) {
-        /**
-         * (Using session from HTTPSession as a parameter)
-         * Integer userID = (Integer) session.getAttribute("loggedInUserId");
-         * 
-         * if (userID == null) {
-         * return "redirect:/login"; // Redirect to login if user is not logged in
-         * }
-         */
-
+        // Validate that the facility exists
+        String facilityName = facilityService.getFacilityById(facilityId)
+                .map(start.spring.io.backend.model.Facility::getName)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid facility Id: " + facilityId));
+        
         model.addAttribute("facilityId", facilityId);
         model.addAttribute("newRequest", new MaintenanceRequest());
-        model.addAttribute("facilityName", facilityService.getFacilityById(facilityId)
-                .map(start.spring.io.backend.model.Facility::getName)
-                .orElse("Unknown Facility"));
+        model.addAttribute("facilityName", facilityName);
         return "maintenance-request-form";
     }
 
     /** Save new maintenance request from form. */
     @PostMapping("/maintenance-request-form")
     public String saveMaintenanceRequestFromForm(@ModelAttribute("newRequest") MaintenanceRequest request,
-            @RequestParam(defaultValue = "facilities") String from) {
+            @RequestParam(defaultValue = "facilities") String from,
+            Authentication authentication) {
+        
+        // Validate the user is logged in
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
         request.setStatus("PENDING");
         request.setReportDate(java.time.LocalDateTime.now());
-        request.setUserId(1); // Temporary hardcoded user ID
+
+        // Set the userId from the authenticated user
+        if(authentication != null && authentication.isAuthenticated()) {
+            String email = authentication.getName();
+            Integer userId = userService.getAllUsers().stream()
+                    .filter(u -> email.equals(u.getEmail()))
+                    .map(User::getUserId)
+                    .findFirst()
+                    .orElse(1);
+                request.setUserId(userId);
+        }
         maintenanceRequestService.createRequest(request);
         return "redirect:/" + from;
     }
@@ -139,21 +152,45 @@ public class MaintenanceRequestController {
             @RequestParam(required = false) String status,
             Model model) {
 
-        List<MaintenanceRequest> requests;
+        // Get all requests for counters
+        List<MaintenanceRequestDTO> allRequests = maintenanceRequestService.getAllRequestsWithDetails(null);
 
+        // Get filtered requests for display
+        List<MaintenanceRequestDTO> requests;
         if (status != null && !status.isEmpty()) {
-            requests = maintenanceRequestService.getRequestsByStatus(status);
+            requests = maintenanceRequestService.getAllRequestsWithDetails(status);
         } else {
-            requests = maintenanceRequestService.getAllRequests();
+            requests = allRequests;
         }
 
-        model.addAttribute("pendingCount", requests.stream().filter(r -> "PENDING".equals(r.getStatus())).count());
-        model.addAttribute("inprogressCount", requests.stream().filter(r -> "IN_PROGRESS".equals(r.getStatus())).count());
-        model.addAttribute("resolvedCount", requests.stream().filter(r -> "CLOSED".equals(r.getStatus())).count());
+        // Calculate counters from ALL requests, not filtered
+        model.addAttribute("pendingCount", allRequests.stream().filter(r -> "PENDING".equals(r.getStatus())).count());
+        model.addAttribute("inprogressCount", allRequests.stream().filter(r -> "IN_PROGRESS".equals(r.getStatus())).count());
+        model.addAttribute("resolvedCount", allRequests.stream().filter(r -> "RESOLVED".equals(r.getStatus())).count());
 
         model.addAttribute("requests", requests);
         model.addAttribute("selectedStatus", status);
 
         return "maintenance-requests-dashboard";
+    }
+
+    /** Change maintenance request status to IN_PROGRESS */
+    @PostMapping("/status/{id}/in-progress")
+    public String startWork(@PathVariable Integer id) {
+        maintenanceRequestService.getRequestById(id).ifPresent(request -> {
+            request.setStatus("IN_PROGRESS");
+            maintenanceRequestService.updateRequest(id, request);
+        });
+        return "redirect:/maintenance-requests/dashboard";
+    }
+
+    /** Change maintenance request status to RESOLVED */
+    @PostMapping("/status/{id}/resolved")
+    public String markResolved(@PathVariable Integer id) {
+        maintenanceRequestService.getRequestById(id).ifPresent(request -> {
+            request.setStatus("RESOLVED");
+            maintenanceRequestService.updateRequest(id, request);
+        });
+        return "redirect:/maintenance-requests/dashboard";
     }
 }

@@ -43,8 +43,9 @@
             background-color: #fff;
         }
         textarea {
-            resize: vertical;
+            resize: none;
             min-height: 100px;
+            max-height: 100px;
         }
 
         /* --- Estilos de la Info Box --- */
@@ -217,7 +218,7 @@
         <h1>Maintenance Request Form    </h1>
         
         <div class="info">
-            <p><strong>Facility ID:</strong> <span th:text="${facilityId}"></span></p>
+            <p><strong>Facility Name:</strong> <span th:text="${facilityName}"></span></p>
         </div>
 
         <form th:action="@{/maintenance-requests/maintenance-request-form}" th:object="${newRequest}" method="post">
@@ -227,7 +228,7 @@
             <input type="hidden" name="from" value="facilities" />
 
             <div class="form-group">
-                <label class="main-label" for="issueType">Issue Type</label>
+                <label class="main-label" for="issueType">Issue Type <span style="color: red;">*</span></label>
                 <select id="issueType" th:field="*{issueType}" required>
                     <option value="" disabled selected>Select the type of issue...</option>
                     <option value="Surface in poor condition">Surface in poor condition</option>
@@ -284,27 +285,6 @@
                 </a>
             </div>
         </form>
-    </div>
-
-    <div class="main-panel">
-        <h1>Maintenance Requests Dashboard</h1>
-
-        <div class="filter-group">
-            <a th:href="@{/maintenance-requests/dashboard}" class="btn-filter"
-                th:classappend="${selectedStatus == null or selectedStatus == ''} ? ' active' : ''">All</a>
-
-            <a th:each="s : ${#lists.arrayList('OPEN','IN_PROGRESS','CLOSED','PENDING')}"
-                th:href="@{/maintenance-requests/dashboard(status=${s})}" class="btn-filter"
-                th:classappend="${selectedStatus == s} ? ' active' : ''" th:text="${s}">STATUS</a>
-        </div>
-
-        <div th:if="${#lists.isEmpty(requests)}" class="text-center py-5">
-            <p class="text-muted">No requests found for this filter.</p>
-        </div>
-
-        <div th:each="r : ${requests}" class="request-card">
-            <!-- rest of card content -->
-        </div>
     </div>
 </body>
 </html>

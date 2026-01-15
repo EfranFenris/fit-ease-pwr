@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8" />
     <title>Maintenance Dashboard</title>
-    <th:block th:replace="~{fragments/navbar :: nav-header}"></th:block>
     <style>
         :root {
             --pending-color: #ff7e4d;
@@ -17,14 +16,13 @@
             font-family: 'Segoe UI', Arial, sans-serif;
             background-color: var(--bg-color);
             margin: 0;
-            padding: 0;
+            padding: 40px 20px;
             color: #444;
         }
 
         .container {
             max-width: 1100px;
-            margin: 40px auto;
-            padding: 0 20px;
+            margin: 0 auto;
         }
 
         .header {
@@ -62,20 +60,9 @@
             border: 1px solid transparent;
         }
 
-        .stat-box.pending {
-            background-color: #fff1e6;
-            border-color: #ffe0cc;
-        }
-
-        .stat-box.inprogress {
-            background-color: #eef2ff;
-            border-color: #e0e7ff;
-        }
-
-        .stat-box.resolved {
-            background-color: #f0fdf4;
-            border-color: #dcfce7;
-        }
+        .stat-box.pending { background-color: #fff1e6; border-color: #ffe0cc; }
+        .stat-box.inprogress { background-color: #eef2ff; border-color: #e0e7ff; }
+        .stat-box.resolved { background-color: #f0fdf4; border-color: #dcfce7; }
 
         .stat-info span {
             display: block;
@@ -84,17 +71,9 @@
             font-weight: 500;
         }
 
-        .pending span {
-            color: var(--pending-color);
-        }
-
-        .inprogress span {
-            color: var(--inprogress-color);
-        }
-
-        .resolved span {
-            color: var(--resolved-color);
-        }
+        .pending span { color: var(--pending-color); }
+        .inprogress span { color: var(--inprogress-color); }
+        .resolved span { color: var(--resolved-color); }
 
         .stat-info .number {
             font-size: 1.4rem;
@@ -140,7 +119,23 @@
             border-radius: 16px;
             padding: 25px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            border-left: 5px solid #999;
+        }
+
+        .request-card.status-pending {
+            border-left-color: #ff7e4d;
+            background: linear-gradient(to right, rgba(255, 126, 77, 0.05), transparent);
+        }
+
+        .request-card.status-in-progress {
+            border-left-color: #4d8aff;
+            background: linear-gradient(to right, rgba(77, 138, 255, 0.05), transparent);
+        }
+
+        .request-card.status-closed {
+            border-left-color: #4dcc8a;
+            background: linear-gradient(to right, rgba(77, 204, 138, 0.05), transparent);
         }
 
         .card-header {
@@ -152,10 +147,9 @@
 
         .card-header h3 {
             margin: 0;
-            font-size: 1.25rem;
-            font-weight: 650;
-            color: #222;
-            flex: 1;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
         }
 
         .badge {
@@ -166,47 +160,13 @@
         }
 
         .badge-severity {
-            font-weight: 500;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-        }
-
-        .badge-severity.severity-low {
-            background: #fff9e6;
-            color: #f1c40f;
-        }
-
-        .badge-severity.severity-medium {
-            background: #fff3e0;
-            color: #e67e22;
-        }
-
-        .badge-severity.severity-high {
-            background: #fff5f5;
-            color: #e74c3c;
-        }
-
-        .badge-status {
-            font-weight: 500;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-        }
-
-        .badge-status.status-pending {
             background: #fff1e6;
             color: #ff7e4d;
         }
 
-        .badge-status.status-in-progress {
-            background: #eef2ff;
-            color: #4d8aff;
-        }
-
-        .badge-status.status-closed {
-            background: #f0fdf4;
-            color: #4dcc8a;
+        .badge-status {
+            background: #fef4e8;
+            color: #d4a373;
         }
 
         .issue-content {
@@ -245,9 +205,7 @@
             gap: 8px;
         }
 
-        .footer-item i {
-            font-style: normal;
-        }
+        .footer-item i { font-style: normal; }
 
         /* --- Action Buttons --- */
         .action-group {
@@ -276,9 +234,7 @@
             color: white;
         }
 
-        .btn:hover {
-            opacity: 0.9;
-        }
+        .btn:hover { opacity: 0.9; }
 
         .no-results {
             text-align: center;
@@ -299,16 +255,15 @@
         .btn-success:hover {
             background-color: #218838;
         }
+
     </style>
 </head>
 
 <body>
-    <div th:insert="~{fragments/navbar :: navbar}"></div>
-    
     <div class="container">
         <div class="header">
             <h1>Maintenance Panel</h1>
-            <p>Manage maintenance requests and track their status.</p>
+            <p>Manage maintenance requests and track their status</p>
         </div>
 
         <div class="stats-container">
@@ -336,15 +291,14 @@
         </div>
 
         <div class="filter-group">
-            <a th:href="@{/maintenance-requests/dashboard(status='PENDING')}"
-                th:classappend="${selectedStatus == 'PENDING' ? 'active' : ''}" class="btn-filter">Pending</a>
-            <a th:href="@{/maintenance-requests/dashboard(status='IN_PROGRESS')}"
-                th:classappend="${selectedStatus == 'IN_PROGRESS' ? 'active' : ''}" class="btn-filter">In Progress</a>
-            <a th:href="@{/maintenance-requests/dashboard(status='RESOLVED')}"
-                th:classappend="${selectedStatus == 'RESOLVED' ? 'active' : ''}" class="btn-filter">Resolved</a>
-            <a th:href="@{/maintenance-requests/dashboard}"
-                th:classappend="${selectedStatus == null or selectedStatus == '' ? 'active' : ''}"
-                class="btn-filter">All</a>
+            <a th:href="@{/maintenance-requests/dashboard(status='PENDING')}" 
+               th:classappend="${selectedStatus == 'PENDING' ? 'active' : ''}" class="btn-filter">Pending</a>
+            <a th:href="@{/maintenance-requests/dashboard(status='IN_PROGRESS')}" 
+               th:classappend="${selectedStatus == 'IN_PROGRESS' ? 'active' : ''}" class="btn-filter">In Progress</a>
+            <a th:href="@{/maintenance-requests/dashboard(status='RESOLVED')}" 
+               th:classappend="${selectedStatus == 'RESOLVED' ? 'active' : ''}" class="btn-filter">Resolved</a>
+            <a th:href="@{/maintenance-requests/dashboard}" 
+               th:classappend="${selectedStatus == null or selectedStatus == '' ? 'active' : ''}" class="btn-filter">All</a>
         </div>
 
         <div class="requests-section">
@@ -352,15 +306,11 @@
                 <p>No maintenance reports found.</p>
             </div>
 
-            <div th:each="req : ${requests}"
-                th:class="${'request-card ' + (req.status == 'PENDING' ? 'status-pending' : req.status == 'IN_PROGRESS' ? 'status-in-progress' : 'status-closed')}">
+            <div th:each="req : ${requests}" class="request-card">
                 <div class="card-header">
                     <h3 th:text="${req.facilityName}">Facility Name</h3>
-                    <span
-                        th:class="${'badge badge-status ' + (req.status == 'PENDING' ? 'status-pending' : req.status == 'IN_PROGRESS' ? 'status-in-progress' : 'status-closed')}"
-                        th:text="${req.status}">Pending</span>
-                    <span th:class="${'badge badge-severity severity-' + req.severity?.toLowerCase()}"
-                        th:text="'Severity: ' + ${req.severity}">Severity: Medium</span>
+                    <span class="badge badge-severity" th:text="'Severity: ' + ${req.severity}">Severity: Medium</span>
+                    <span class="badge badge-status" th:text="${req.status}">Pending</span>
                 </div>
 
                 <div class="issue-content">
@@ -376,8 +326,7 @@
                         <i>✉️</i> <span th:text="${req.userEmail}">User Email</span>
                     </div>
                     <div class="footer-item">
-                        <i>📅</i> Reported: <span
-                            th:text="${#temporals.format(req.reportDate, 'dd/MM/yyyy')}">11/26/2025</span>
+                        <i>📅</i> Reported: <span th:text="${#temporals.format(req.reportDate, 'dd/MM/yyyy')}">11/26/2025</span>
                     </div>
                     <div class="footer-item">
                         <i>🔢</i> <span>Request #</span><span th:text="${req.requestId}">email@domain.com</span>
@@ -385,24 +334,12 @@
                 </div>
 
                 <div class="action-group">
-                    <!-- Button 'In Progress' only if status is PENDING -->
-                    <form th:if="${req.status == 'PENDING'}"
-                        th:action="@{/maintenance-requests/status/{id}/in-progress(id=${req.requestId})}" method="post"
-                        style="display:inline;">
-                        <button type="submit" class="btn btn-start">In progress</button>
+                    <form th:action="@{/maintenance-requests/status/{id}/in-progress(id=${req.requestId})}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-start">In process</button>
                     </form>
-
-                    <!-- Button 'Resolved' only if status is IN_PROGRESS -->
-                    <form th:if="${req.status == 'IN_PROGRESS'}"
-                        th:action="@{/maintenance-requests/status/{id}/resolved(id=${req.requestId})}" method="post"
-                        style="display:inline;">
+                    <form th:action="@{/maintenance-requests/status/{id}/resolved(id=${req.requestId})}" method="post" style="display:inline;">
                         <button type="submit" class="btn btn-success">Resolved</button>
                     </form>
-
-                    <!-- Message if status is RESOLVED -->
-                    <div th:if="${req.status == 'RESOLVED'}" style="padding: 10px; color: #4dcc8a; font-weight: 600;">
-                        ✓ This request is resolved
-                    </div>
                 </div>
             </div>
         </div>

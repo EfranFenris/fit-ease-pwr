@@ -27,6 +27,10 @@ public class UserService {
         return repository.findById(id);
     }
 
+    public Optional<User> getUserByEmail(String email) {
+        return repository.findByEmail(email);
+    }
+
     /** Create a new user. */
     public User createUser(User request) {
         request.setUserId(null);

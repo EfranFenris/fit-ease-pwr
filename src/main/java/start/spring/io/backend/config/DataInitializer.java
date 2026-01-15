@@ -29,27 +29,36 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         User maria = null;
 
-        if (facilityRepository.count() == 0) {  // Solo si no hay usuarios
+        if (facilityRepository.count() == 0) {  // Only add if table is empty
             facilityRepository.save(new Facility("Tennis-Court-1", "outdoors", "free"));
             facilityRepository.save(new Facility("Badminton-Court-1", "indoors", "Under-Maintenance"));
             facilityRepository.save(new Facility("Ping-Pong-1", "indoors","booked"));
             facilityRepository.save(new Facility("Padel-Court-1", "outdoors", "free"));
         }
 
-        if (userRepository.count() == 0) {
+        // Insert users only if they don't exist (check by email)
+        if (!userRepository.findByEmail("juan@example.com").isPresent()) {
             userRepository.save(new User("Juan Perez", "juan@example.com", "123456", "admin"));
+        }
+        
+        if (!userRepository.findByEmail("maria@example.com").isPresent()) {
             maria = userRepository.save(new User("Maria Lopez", "maria@example.com", "password", "user"));
-            userRepository.save(new User("Miryam Merchan", "miryam@example.com", "charlie", "manteinance"));
-            userRepository.save(new User("Maria Lopez", "maria@example.com", "password", "user"));
+        } else {
+            maria = userRepository.findByEmail("maria@example.com").orElse(null);
+        }
+        
+        if (!userRepository.findByEmail("miryam@example.com").isPresent()) {
             userRepository.save(new User("Miryam Merchan", "miryam@example.com", "charlie", "maintenance"));
+        }
+        
+        if (!userRepository.findByEmail("carmen@example.com").isPresent()) {
             userRepository.save(new User("Carmen", "carmen@example.com", "uuuu", "user"));
         }
 
-        if (penaltyRepository.count() == 0) {
-            if (maria != null) {
-                System.out.println("Creating penalty for Maria Lopez with userId: " + maria.getUserId());
-                penaltyRepository.save(new Penalty(maria.getUserId(), "Did not show up without canceling", LocalDateTime.now().minusDays(1)));
-            }
+        // Create penalty for Maria only if it doesn't exist
+        if (maria != null && penaltyRepository.count() == 0) {
+            System.out.println("Creating penalty for Maria Lopez with userId: " + maria.getUserId());
+            penaltyRepository.save(new Penalty(maria.getUserId(), "Did not show up without canceling", LocalDateTime.now().minusDays(1)));
         }
 
         
