@@ -1,234 +1,190 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <title>Report Issue</title>
+    <meta charset="UTF-8">
+    <title>Report Issue - FitEasePWR</title>
+    
+    <th:block th:replace="~{fragments/navbar :: nav-header}"></th:block>
+
     <style>
-        /* --- Estructura Base --- */
+        /* --- Base Structure & Variables --- */
+        :root {
+            --primary-blue: #5D5FEF;
+            --accent-orange: #FF6B00;
+            --bg-light: #f8fafc;
+            --text-dark: #1e293b;
+            --border-color: #e2e8f0;
+            --low-color: #f1c40f;
+            --medium-color: #e67e22;
+            --high-color: #e74c3c;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 0;
+            color: var(--text-dark);
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
+
+        .form-container {
+            max-width: 700px;
+            margin: 20px auto;
             background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 25px 35px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         }
+
         h1 {
-            color: #333;
-            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 18px;
+            text-align: left;
         }
-        .form-group {
+
+        /* --- Facility Info Banner --- */
+        .facility-banner {
+            background: linear-gradient(90deg, #0061ff 0%, #60efff 100%);
+            padding: 12px 18px;
             margin-bottom: 20px;
+            border-radius: 10px;
+            color: white;
+            display: flex;
+            align-items: center;
         }
+
+        .facility-banner p {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* --- Form Elements --- */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
         label.main-label {
             display: block;
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: #555;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #475569;
         }
-        /* Estilo para el dropdown y otros inputs */
-        input[type="text"],
-        textarea,
-        select {
+
+        select, textarea {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 11px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
             box-sizing: border-box;
             font-size: 14px;
+            transition: all 0.3s ease;
             background-color: #fff;
+            color: var(--text-dark);
         }
+
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(93, 95, 239, 0.1);
+        }
+
         textarea {
             resize: none;
-            min-height: 100px;
-            max-height: 100px;
+            min-height: 80px;
         }
 
-        /* --- Estilos de la Info Box --- */
-        .info {
-            background-color: #e7f3ff;
-            border-left: 4px solid #2196F3;
-            padding: 15px;
-            margin-bottom: 25px;
-            border-radius: 4px;
-        }
-        .info p {
-            margin: 0;
-            color: #1976D2;
-        }
-
-        /* --- Selector de Severidad (Estilo de Tarjetas) --- */
+        /* --- Horizontal Severity Selector --- */
         .severity-selector {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 5px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
         }
+
         .severity-input {
             display: none;
         }
+
         .severity-card {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            padding: 12px 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
+            justify-content: center;
+            padding: 14px 8px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.2s ease;
             background-color: #fff;
-            font-weight: normal;
+            text-align: center;
         }
-        .severity-card:hover {
-            border-color: #ccc;
-        }
-        .dot {
+
+        .severity-card .dot {
             height: 12px;
             width: 12px;
             border-radius: 50%;
-            margin-right: 15px;
-            display: inline-block;
-        }
-        .low .dot { background-color: #f1c40f; }
-        .medium .dot { background-color: #e67e22; }
-        .high .dot { background-color: #e74c3c; }
-
-        .label-content {
-            font-size: 14px;
-            color: #555;
-        }
-        .label-content strong {
-            color: #333;
+            margin-bottom: 10px;
         }
 
-        /* Estados de Selección (:checked) */
-        #sev-low:checked + .low {
-            border-color: #f1c40f;
-            background-color: #fffdf0;
-        }
-        #sev-medium:checked + .medium {
-            border-color: #e67e22;
-            background-color: #fff7f0;
-        }
-        #sev-high:checked + .high {
-            border-color: #e74c3c;
-            background-color: #fff5f5;
-        }
+        .low .dot { background-color: var(--low-color); }
+        .medium .dot { background-color: var(--medium-color); }
+        .high .dot { background-color: var(--high-color); }
 
-        /* --- Grupo de Botones --- */
+        .severity-card strong { display: block; font-size: 1rem; color: #334155; }
+        .severity-card .desc { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
+
+        /* Selection States */
+        #sev-low:checked + .low { border-color: var(--low-color); background: #fefce8; }
+        #sev-medium:checked + .medium { border-color: var(--medium-color); background: #fff7ed; }
+        #sev-high:checked + .high { border-color: var(--high-color); background: #fef2f2; }
+
+        /* --- Actions --- */
         .button-group {
             display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 30px;
+            gap: 12px;
+            margin-top: 22px;
         }
-        button {
-            padding: 12px 30px;
+
+        .btn {
+            flex: 1;
+            padding: 12px;
             border: none;
-            border-radius: 4px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
             cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .btn-submit {
-            background-color: #007bff;
-            color: white;
-        }
-        .btn-submit:hover {
-            background-color: #0056b3;
-        }
-        .btn-cancel {
-            background-color: #6c757d;
-            color: white;
-        }
-        .btn-cancel:hover {
-            background-color: #545b62;
-        }
-
-        /* --- Nota Final --- */
-        .note {
-            margin-top: 20px;
-            padding: 10px;
-            font-size: 13px;
-            color: #777;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-            border: 1px solid #eee;
-        }
-
-        /* --- Estilos del Panel Principal --- */
-        .main-panel {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .filter-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
-        .btn-filter {
-            display: inline-block;
-            padding: 10px 20px;
-            border: 1px solid transparent;
-            border-radius: 4px;
-            background-color: #007bff;
-            color: white;
+            transition: all 0.3s ease;
             text-align: center;
             text-decoration: none;
-            transition: all 0.2s;
         }
-        .btn-filter:hover {
-            background-color: #0056b3;
-        }
-        .btn-filter.active {
-            background-color: #0056b3;
-            border-color: #004085;
-        }
-        .request-card {
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            background-color: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .text-center {
-            text-align: center;
-        }
-        .py-5 {
-            padding-top: 3rem !important;
-            padding-bottom: 3rem !important;
-        }
-        .text-muted {
-            color: #6c757d !important;
-        }
+
+        .btn-submit { background-color: var(--primary-blue); color: white; }
+        .btn-submit:hover { background-color: #4a4cd9; transform: translateY(-1px); }
+
+        .btn-cancel { background-color: #e2e8f0; color: #475569; }
+        .btn-cancel:hover { background-color: #cbd5e1; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Maintenance Request Form    </h1>
+
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="form-container">
+        <h1>Maintenance Request Form</h1>
         
-        <div class="info">
-            <p><strong>Facility Name:</strong> <span th:text="${facilityName}"></span></p>
+        <div class="facility-banner">
+            <p>Facility Name: <span th:text="${facilityName}">Tennis-Court-1</span></p>
         </div>
 
         <form th:action="@{/maintenance-requests/maintenance-request-form}" th:object="${newRequest}" method="post">
             
-            <input type="hidden" name="facilityId" th:value="${facilityId}">                
-
+            <input type="hidden" name="facilityId" th:value="${facilityId}">
             <input type="hidden" name="from" value="facilities" />
 
             <div class="form-group">
-                <label class="main-label" for="issueType">Issue Type <span style="color: red;">*</span></label>
+                <label class="main-label" for="issueType">Issue Type <span style="color: var(--high-color);">*</span></label>
                 <select id="issueType" th:field="*{issueType}" required>
                     <option value="" disabled selected>Select the type of issue...</option>
                     <option value="Surface in poor condition">Surface in poor condition</option>
@@ -236,7 +192,7 @@
                     <option value="Broken equipment">Broken equipment</option>
                     <option value="Cleanliness / Waste">Cleanliness / Waste</option>
                     <option value="Structural damage">Structural damage</option>
-                    <option value="Other">Other (Please specify in description)</option>
+                    <option value="Other">Other (Please specify below)</option>
                 </select>
             </div>
 
@@ -246,25 +202,22 @@
                     <input type="radio" th:field="*{severity}" value="LOW" id="sev-low" class="severity-input" required>
                     <label for="sev-low" class="severity-card low">
                         <span class="dot"></span>
-                        <span class="label-content">
-                            <strong>Low</strong> - Does not affect use
-                        </span>
+                        <strong>Low</strong>
+                        <span class="desc">Does not affect use</span>
                     </label>
 
                     <input type="radio" th:field="*{severity}" value="MEDIUM" id="sev-medium" class="severity-input">
                     <label for="sev-medium" class="severity-card medium">
                         <span class="dot"></span>
-                        <span class="label-content">
-                            <strong>Medium</strong> - Limited use
-                        </span>
+                        <strong>Medium</strong>
+                        <span class="desc">Limited use</span>
                     </label>
 
                     <input type="radio" th:field="*{severity}" value="HIGH" id="sev-high" class="severity-input">
                     <label for="sev-high" class="severity-card high">
                         <span class="dot"></span>
-                        <span class="label-content">
-                            <strong>High</strong> - Cannot be used
-                        </span>
+                        <strong>High</strong>
+                        <span class="desc">Cannot be used</span>
                     </label>
                 </div>
             </div>
@@ -273,18 +226,17 @@
                 <label class="main-label" for="description">Detailed Description</label>
                 <textarea id="description" 
                           th:field="*{description}"
-                          placeholder="Describe the issue in detail. For example: exact location, condition of damage, etc."
+                          placeholder="Describe the issue in detail (location, damage details, etc.)"
                           maxlength="200"
                           required></textarea>
             </div>
 
             <div class="button-group">
-                <button type="submit" class="btn-submit">Submit</button>
-                <a th:href="@{/facilities}" style="text-decoration: none;">
-                    <button type="button" class="btn-cancel">Cancel</button>
-                </a>
+                <button type="submit" class="btn btn-submit">Submit Request</button>
+                <a th:href="@{/facilities}" class="btn btn-cancel">Cancel</a>
             </div>
         </form>
     </div>
+
 </body>
 </html>
