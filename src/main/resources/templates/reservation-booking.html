@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>New Booking</title>
+    <style>
+        :root {
+            --primary: #4b3df0;
+            --primary-dark: #3a2fd6;
+            --muted: #667085;
+            --border: #e5e7eb;
+            --bg: #f3f5f9;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #e8ecf7, #f6f7fb);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 520px;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h1 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .modal-header p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .close {
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 20px;
+            padding: 4px 8px;
+        }
+
+        form {
+            padding: 20px 22px 24px;
+            display: grid;
+            gap: 18px;
+        }
+
+        label {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .btn {
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-cancel {
+            background: #f2f4f7;
+            color: #111827;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        @media (max-width: 520px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="modal">
+    <div class="modal-header">
+        <div>
+            <h1>New Booking</h1>
+            <p th:text="${facilityName}"></p>
+        </div>
+        <a class="close" href="/facilities">×</a>
+    </div>
+
+    <form th:action="@{/reservations/book}" method="post">
+        <input type="hidden" name="facilityId" th:value="${facilityId}" />
+
+        <div>
+            <label for="bookingDate">Date</label>
+            <input id="bookingDate" name="bookingDate" type="date" required />
+        </div>
+
+        <div class="grid-2">
+            <div>
+                <label for="startTime">Start Time</label>
+                <input id="startTime" name="startTime" type="time" required />
+            </div>
+            <div>
+                <label for="endTime">End Time</label>
+                <input id="endTime" name="endTime" type="time" required />
+            </div>
+        </div>
+
+        <div>
+            <label for="participants">Number of Participants</label>
+            <input id="participants" name="participants" type="number" min="1" required />
+        </div>
+
+        <div>
+            <label for="purpose">Booking Purpose</label>
+            <textarea id="purpose" name="purpose" placeholder="Friendly match"></textarea>
+        </div>
+
+        <div class="actions">
+            <a class="btn btn-cancel" href="/facilities">Cancel</a>
+            <button class="btn btn-primary" type="submit">Confirm Booking</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>
