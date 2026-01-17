@@ -19,7 +19,11 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PenaltyRepository penaltyRepository; 
 
-    public DataInitializer(FacilityRepository facilityRepository, UserRepository userRepository, PenaltyRepository penaltyRepository) {
+    public DataInitializer(
+            FacilityRepository facilityRepository,
+            UserRepository userRepository,
+            PenaltyRepository penaltyRepository
+    ) {
         this.facilityRepository = facilityRepository;
         this.userRepository = userRepository;
         this.penaltyRepository = penaltyRepository;
