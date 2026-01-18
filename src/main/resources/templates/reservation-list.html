@@ -1,138 +1,334 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <title>Reservations</title>
-  <style>
-    body { font-family: Arial; margin: 40px; background: #f9f9f9; }
-    h1 { color: #333; margin-bottom: 15px; }
+    <title>My Bookings</title>
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --primary: #4f46e5;
+            --primary-soft: #eef2ff;
+            --border: #e2e8f0;
+            --upcoming: #22c55e;
+            --past: #94a3b8;
+            --danger: #ef4444;
+        }
 
-    .card {
-      background: #fff;
-      padding: 20px;
-      border-radius: 6px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      max-width: 1100px;
-    }
+        * {
+            box-sizing: border-box;
+        }
 
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-    th { background: #4CAF50; color: white; }
-    tr:nth-child(even) { background: #f2f2f2; }
+        body {
+            margin: 0;
+            font-family: "Inter", "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
 
-    .actions { white-space: nowrap; }
+        header {
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            padding: 20px 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-    a.button, button {
-      padding: 6px 12px;
-      margin: 2px;
-      background: #4CAF50;
-      color: white;
-      text-decoration: none;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      display: inline-block;
-      font-size: 14px;
-    }
-    a.button.delete { background: #f44336; }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
 
-    h2 { margin-top: 25px; color: #333; }
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: var(--primary);
+            display: grid;
+            place-items: center;
+            color: white;
+            font-size: 20px;
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.24);
+        }
 
-    .form-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      margin-top: 10px;
-    }
+        .brand h1 {
+            margin: 0;
+            font-size: 18px;
+        }
 
-    .form-row input, .form-row select {
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      min-width: 140px;
-      box-sizing: border-box;
-    }
+        .brand p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
 
-    .form-row input[type="number"] { width: 140px; }
-    .form-row input[type="datetime-local"] { min-width: 210px; }
-    .form-row input[type="time"] { width: 140px; }
+        .logout {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+        }
 
-    .hint {
-      font-size: 13px;
-      color: #666;
-      margin-top: 8px;
-    }
-  </style>
+        .tabs {
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            padding: 0 36px;
+        }
+
+        .tabs ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 24px;
+        }
+
+        .tabs a {
+            display: inline-flex;
+            gap: 8px;
+            padding: 14px 0;
+            text-decoration: none;
+            color: var(--muted);
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tabs a.active {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        main {
+            padding: 28px 36px 60px;
+        }
+
+        .page-title h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .page-title p {
+            margin: 6px 0 0;
+            color: var(--muted);
+        }
+
+        .filters {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-pill {
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: #fff;
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .filter-pill.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+        }
+
+        .cards {
+            margin-top: 24px;
+            display: grid;
+            gap: 18px;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 180px 1fr;
+        }
+
+        .card-image {
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .status {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            background: var(--upcoming);
+        }
+
+        .status-past {
+            background: var(--past);
+        }
+
+        .card-body {
+            padding: 18px 22px 20px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .card-header span {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px 18px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: var(--primary-soft);
+            color: var(--primary);
+            border-color: transparent;
+        }
+
+        .btn-outline {
+            border-color: var(--border);
+            color: var(--text);
+            background: #fff;
+        }
+
+        .btn-danger {
+            background: #fff;
+            border-color: rgba(239, 68, 68, 0.4);
+            color: var(--danger);
+        }
+
+        .empty-state {
+            margin-top: 30px;
+            padding: 40px;
+            text-align: center;
+            background: #fff;
+            border: 1px dashed var(--border);
+            border-radius: 16px;
+            color: var(--muted);
+        }
+
+        @media (max-width: 860px) {
+            .card {
+                grid-template-columns: 1fr;
+            }
+
+            .card-image {
+                height: 160px;
+            }
+        }
+    </style>
 </head>
-
 <body>
-  <h1>Gestión de Reservations</h1>
+<header>
+    <div class="brand">
+        <div class="brand-icon">📅</div>
+        <div>
+            <h1>Sports Facilities</h1>
+            <p th:text="'Welcome, ' + ${userName}"></p>
+        </div>
+    </div>
+    <a class="logout" href="/logout">↗ Logout</a>
+</header>
 
-  <div class="card">
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>User</th>
-          <th>Facility</th>
-          <th>Date</th>
-          <th>Start</th>
-          <th>End</th>
-          <th>Participants</th>
-          <th>Purpose</th>
-          <th class="actions">Actions</th>
-        </tr>
-      </thead>
+<nav class="tabs">
+    <ul>
+        <li><a href="/facilities">📅 Available Spaces</a></li>
+        <li><a class="active" href="/reservations">📋 My Bookings</a></li>
+    </ul>
+</nav>
 
-      <tbody>
-        <tr th:each="r : ${reservations}">
-          <td th:text="${r.reservationId}"></td>
-          <td th:text="${r.userId}"></td>
-          <td th:text="${r.facilityId}"></td>
+<main>
+    <div class="page-title">
+        <h2>My Bookings</h2>
+        <p>Manage your bookings and report facility issues.</p>
+    </div>
 
-          <!-- LocalDateTime prints a bit ugly by default; this cleans it up -->
-          <td th:text="${#temporals.format(r.date, 'yyyy-MM-dd HH:mm')}"></td>
+    <div class="filters">
+        <a class="filter-pill" th:classappend="${filter} == 'upcoming' ? ' active' : ''" href="/reservations?filter=upcoming">Upcoming</a>
+        <a class="filter-pill" th:classappend="${filter} == 'past' ? ' active' : ''" href="/reservations?filter=past">Past</a>
+        <a class="filter-pill" th:classappend="${filter} == 'all' ? ' active' : ''" href="/reservations?filter=all">All</a>
+    </div>
 
-          <td th:text="${r.startTime}"></td>
-          <td th:text="${r.endTime}"></td>
-          <td th:text="${r.participants}"></td>
-          <td th:text="${r.purpose}"></td>
+    <div class="cards" th:if="${!#lists.isEmpty(reservationCards)}">
+        <div class="card" th:each="card : ${reservationCards}">
+            <div class="card-image" th:style="|background-image: url('${card.imageUrl}');|">
+                <span class="status" th:classappend="${card.statusClass}" th:text="${card.statusLabel}"></span>
+            </div>
+            <div class="card-body">
+                <div class="card-header">
+                    <div>
+                        <h3 th:text="${card.facilityName}"></h3>
+                    </div>
+                    <span th:text="${card.location}"></span>
+                </div>
+                <div class="meta">
+                    <span>📅 <span th:text="${#temporals.format(card.startDateTime, 'EEEE, MMMM d, yyyy')}"></span></span>
+                    <span>⏰ <span th:text="${#temporals.format(card.startDateTime, 'HH:mm')} + ' - ' + ${#temporals.format(card.endDateTime, 'HH:mm')}"></span></span>
+                    <span>👥 <span th:text="${card.participants} + ' participants'"></span></span>
+                </div>
+                <div class="actions">
+                    <a class="btn btn-primary" th:href="@{/reservations/new/{id}(id=${card.reservation.facilityId})}">Book Again</a>
+                    <a class="btn btn-outline" th:href="@{/maintenance-requests/maintenance-request-form/{id}(id=${card.reservation.facilityId})}">Report Issue</a>
+                    <a class="btn btn-danger" th:href="@{/reservations/delete/{id}(id=${card.reservation.reservationId})}"
+                       onclick="return confirm('Cancel this booking?');">Cancel Booking</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-          <td class="actions">
-            <a th:href="@{/reservations/edit/{id}(id=${r.reservationId})}" class="button">Editar</a>
-            <a th:href="@{/reservations/delete/{id}(id=${r.reservationId})}"
-               class="button delete"
-               onclick="return confirm('¿Seguro que quieres borrar esta reservation?');">
-              Borrar
-            </a>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h2>Añadir Reservation</h2>
-
-    <form th:action="@{/reservations/add}" th:object="${newReservation}" method="post">
-      <div class="form-row">
-        <input type="number" th:field="*{userId}" placeholder="userId" required />
-        <input type="number" th:field="*{facilityId}" placeholder="facilityId" required />
-
-        <!-- If your entity uses LocalDateTime, this input fits nicely -->
-        <input type="datetime-local" th:field="*{date}" required />
-
-        <input type="time" th:field="*{startTime}" required />
-        <input type="time" th:field="*{endTime}" required />
-
-        <input type="number" th:field="*{participants}" placeholder="participants" min="1" required />
-        <input type="text" th:field="*{purpose}" placeholder="purpose" />
-
-        <button type="submit">Añadir</button>
-      </div>
-
-      <div class="hint">
-        Tip: userId y facilityId tienen que existir en la BD, si no, MySQL te dará error por foreign key.
-      </div>
-    </form>
-  </div>
+    <div class="empty-state" th:if="${#lists.isEmpty(reservationCards)}">
+        No bookings found for this view. Try switching the filter or book a new facility.
+    </div>
+</main>
 </body>
 </html>

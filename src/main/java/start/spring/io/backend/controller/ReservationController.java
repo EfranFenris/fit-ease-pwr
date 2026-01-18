@@ -3,6 +3,8 @@ package start.spring.io.backend.controller;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Comparator;
+import java.util.List;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import start.spring.io.backend.dto.ReservationCardView;
 import start.spring.io.backend.model.Facility;
 import start.spring.io.backend.model.Reservation;
 import start.spring.io.backend.model.User;
@@ -36,9 +39,29 @@ public class ReservationController {
     }
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("reservations", service.getAll());
-        model.addAttribute("newReservation", new Reservation());
+    public String list(Model model,
+            @RequestParam(value = "filter", defaultValue = "upcoming") String filter,
+            Authentication authentication) {
+        Integer userId = 1;
+        String userName = "Guest";
+        if (authentication != null && authentication.isAuthenticated()) {
+            User user = userService.getUserByEmail(authentication.getName())
+                    .orElse(null);
+            if (user != null) {
+                userId = user.getUserId();
+                userName = user.getName();
+            }
+        }
+
+        List<ReservationCardView> cards = service.getByUserId(userId).stream()
+                .map(this::toCardView)
+                .filter(card -> filterMatches(card, filter))
+                .sorted(Comparator.comparing(ReservationCardView::startDateTime))
+                .toList();
+
+        model.addAttribute("reservationCards", cards);
+        model.addAttribute("filter", filter);
+        model.addAttribute("userName", userName);
         return "reservation-list";
     }
 
@@ -108,5 +131,64 @@ public class ReservationController {
     public String delete(@PathVariable Integer id) {
         service.delete(id);
         return "redirect:/reservations";
+    }
+
+    private ReservationCardView toCardView(Reservation reservation) {
+        Facility facility = facilityService.getFacilityById(reservation.getFacilityId())
+                .orElse(null);
+
+        String facilityName = facility != null ? facility.getName() : "Facility " + reservation.getFacilityId();
+        String facilityType = facility != null ? facility.getType() : "general";
+
+        String imageUrl = switch (facilityType == null ? "" : facilityType.toLowerCase()) {
+            case "soccer", "football" ->
+                "https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=1000&q=80";
+            case "basketball" ->
+                "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=1000&q=80";
+            case "tennis", "padel" ->
+                "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1000&q=80";
+            case "badminton" ->
+                "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1000&q=80";
+            default ->
+                "https://images.unsplash.com/photo-1471295253337-3ceaaedca402?auto=format&fit=crop&w=1000&q=80";
+        };
+
+        String location = switch (facilityType == null ? "" : facilityType.toLowerCase()) {
+            case "tennis", "padel" -> "Racquet Zone";
+            case "basketball" -> "Central Pavilion";
+            case "soccer", "football" -> "North Sports Complex";
+            case "badminton" -> "Indoor Hall";
+            default -> "Main Sports Hub";
+        };
+
+        LocalDateTime startDateTime = reservation.getDate();
+        LocalDateTime endDateTime = LocalDateTime.of(reservation.getDate().toLocalDate(), reservation.getEndTime());
+        boolean isUpcoming = endDateTime.isAfter(LocalDateTime.now());
+        String statusLabel = isUpcoming ? "Upcoming" : "Past";
+        String statusClass = isUpcoming ? "status-upcoming" : "status-past";
+
+        return new ReservationCardView(
+                reservation,
+                facilityName,
+                facilityType,
+                location,
+                imageUrl,
+                statusLabel,
+                statusClass,
+                startDateTime,
+                endDateTime,
+                reservation.getParticipants(),
+                reservation.getPurpose());
+    }
+
+    private boolean filterMatches(ReservationCardView card, String filter) {
+        if ("all".equalsIgnoreCase(filter)) {
+            return true;
+        }
+        boolean isUpcoming = "Upcoming".equalsIgnoreCase(card.statusLabel());
+        if ("past".equalsIgnoreCase(filter)) {
+            return !isUpcoming;
+        }
+        return isUpcoming;
     }
 }

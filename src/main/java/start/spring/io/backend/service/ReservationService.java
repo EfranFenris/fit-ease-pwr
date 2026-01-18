@@ -20,6 +20,10 @@ public class ReservationService {
         return repo.findAll();
     }
 
+    public List<Reservation> getByUserId(Integer userId) {
+        return repo.findByUserId(userId);
+    }
+
     public Optional<Reservation> getById(Integer id) {
         return repo.findById(id);
     }
