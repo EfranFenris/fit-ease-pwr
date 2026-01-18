@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -14,6 +15,7 @@ import start.spring.io.backend.service.CustomUserDetailsService;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
@@ -40,8 +42,12 @@ public class SecurityConfig {
             .authenticationProvider(authenticationProvider())
             // 1. Configure authorization rules (from specific to general)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**").permitAll() // Allow public access to these paths
-                .requestMatchers("/facilities/**").hasAnyRole("admin", "user") // admin and user can access 
+                .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**").permitAll() // Allow public access to these paths
+                .requestMatchers("/facilities/**").authenticated() // All authenticated users can access
+                .requestMatchers("/reservations/**").authenticated() // All authenticated users can access
+                .requestMatchers("/users/**").hasRole("admin") // Only admin can access users
+                .requestMatchers("/maintenance-requests/dashboard").hasRole("admin") // Only admin can access dashboard
+                .requestMatchers("/maintenance-requests/**").authenticated() // All authenticated users can create requests
                 .requestMatchers("/admin/**").hasRole("admin") // Only admin can access
                 .anyRequest().authenticated() // All other requests require authentication
             )
@@ -53,10 +59,17 @@ public class SecurityConfig {
                 .permitAll()
             )
             
+            // 3. Configure access denied handling
+            .exceptionHandling(exception -> exception
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.sendError(403, "Access Denied");
+                })
+            )
+            
             // 3. Configure logout
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout") // Redirect there on logout
+                .logoutSuccessUrl("/") // Redirect to landing page on logout
                 .permitAll());
 
         return http.build();

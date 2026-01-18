@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - FitEasePWR</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4b3df0;
+            --primary-dark: #3a2fd6;
+            --secondary: #ff6b1a;
+            --error: #ef4444;
+            --text: #1f2933;
+            --muted: #667085;
+            --border: #e5e7eb;
+            --bg: #f5f7fb;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .error-container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .error-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 48px 32px;
+            text-align: center;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        }
+
+        .error-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 24px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: var(--error);
+        }
+
+        .error-code {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--error);
+            margin-bottom: 12px;
+        }
+
+        .error-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+
+        .error-description {
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .error-details {
+            background: #f9fafb;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 32px;
+            text-align: left;
+            font-size: 14px;
+            color: var(--muted);
+            word-break: break-all;
+        }
+
+        .error-details strong {
+            color: var(--text);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .error-icon-403 {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .error-icon-404 {
+            background: rgba(148, 163, 184, 0.1);
+            color: #64748b;
+        }
+
+        @media (max-width: 640px) {
+            .error-card {
+                padding: 32px 20px;
+            }
+
+            .error-code {
+                font-size: 36px;
+            }
+
+            .error-title {
+                font-size: 22px;
+            }
+
+            .error-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-card">
+            <!-- 403 Forbidden -->
+            <th:block th:if="${status == 403}">
+                <div class="error-icon error-icon-403">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <div class="error-code">403</div>
+                <div class="error-title">Access Denied</div>
+                <div class="error-description">
+                    You don't have permission to access this resource. Only administrators can view this page.
+                </div>
+            </th:block>
+
+            <!-- 404 Not Found -->
+            <th:block th:if="${status == 404}">
+                <div class="error-icon error-icon-404">
+                    <i class="fa-solid fa-circle-question"></i>
+                </div>
+                <div class="error-code">404</div>
+                <div class="error-title">Page Not Found</div>
+                <div class="error-description">
+                    Sorry, the page you're looking for doesn't exist or has been moved.
+                </div>
+            </th:block>
+
+            <!-- Generic Error -->
+            <th:block th:unless="${status == 403 || status == 404}">
+                <div class="error-icon">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="error-code" th:text="${status}">500</div>
+                <div class="error-title">Oops! Something Went Wrong</div>
+                <div class="error-description">
+                    An unexpected error occurred. Please try again or contact support if the problem persists.
+                </div>
+            </th:block>
+
+            <div class="error-actions">
+                <a href="/facilities" class="btn btn-primary">
+                    <i class="fa-solid fa-home"></i>
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

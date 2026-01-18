@@ -1,5 +1,6 @@
 package start.spring.io.backend.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -8,6 +9,7 @@ import start.spring.io.backend.service.UserService;
 
 @Controller
 @RequestMapping("/users")
+@PreAuthorize("hasRole('admin')")
 public class UserController {
 
     private final UserService userService;
@@ -20,6 +22,7 @@ public class UserController {
     public String listUsers(Model model) {
         model.addAttribute("users", userService.getAllUsers());
         model.addAttribute("newUser", new User());
+        model.addAttribute("currentPage", "users");
         return "user-list";
     }
 
