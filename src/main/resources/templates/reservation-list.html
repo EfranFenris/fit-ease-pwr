@@ -308,7 +308,7 @@
                 <div class="card-header">
                     <div>
                         <h3 th:text="${card.facilityName}"></h3>
-                        <span th:text="${#strings.isEmpty(card.purpose)} ? 'General booking' : card.purpose"></span>
+                        <p th:text="${card.purpose}" style="margin: 4px 0 0; color: var(--muted); font-size: 13px;"></p>
                     </div>
                     <span th:text="${card.location}"></span>
                 </div>
