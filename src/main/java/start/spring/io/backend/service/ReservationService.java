@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 import start.spring.io.backend.model.Reservation;
 import start.spring.io.backend.repository.ReservationRepository;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,6 +20,25 @@ public class ReservationService {
 
     public List<Reservation> getAll() {
         return repo.findAll();
+    }
+
+    public List<Reservation> getByUserId(Integer userId) {
+        return repo.findByUserId(userId);
+    }
+
+    public boolean hasConflict(Reservation reservation, Integer excludeReservationId) {
+        LocalDateTime startDateTime = reservation.getDate();
+        LocalDateTime dayStart = startDateTime.toLocalDate().atStartOfDay();
+        LocalDateTime dayEnd = dayStart.plusDays(1);
+        LocalTime startTime = reservation.getStartTime();
+        LocalTime endTime = reservation.getEndTime();
+        return !repo.findConflicts(
+                reservation.getFacilityId(),
+                dayStart,
+                dayEnd,
+                startTime,
+                endTime,
+                excludeReservationId).isEmpty();
     }
 
     public Optional<Reservation> getById(Integer id) {

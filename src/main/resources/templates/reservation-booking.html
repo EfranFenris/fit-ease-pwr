@@ -124,6 +124,16 @@
             background: var(--primary-dark);
         }
 
+        .alert {
+            margin: 18px 22px 0;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            font-size: 13px;
+        }
+
         @media (max-width: 520px) {
             .grid-2 {
                 grid-template-columns: 1fr;
@@ -140,6 +150,7 @@
         </div>
         <a class="close" href="/facilities">×</a>
     </div>
+    <div class="alert" th:if="${errorMessage}" th:text="${errorMessage}"></div>
 
     <form th:action="@{/reservations/book}" method="post">
         <input type="hidden" name="facilityId" th:value="${facilityId}" />
