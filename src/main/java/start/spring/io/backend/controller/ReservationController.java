@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import start.spring.io.backend.model.Facility;
 import start.spring.io.backend.model.Reservation;
+import start.spring.io.backend.model.User;
 import start.spring.io.backend.service.FacilityService;
 import start.spring.io.backend.service.ReservationService;
 import start.spring.io.backend.service.UserService;
@@ -43,7 +45,7 @@ public class ReservationController {
     @GetMapping("/new/{facilityId}")
     public String newReservation(@PathVariable Integer facilityId, Model model) {
         String facilityName = facilityService.getFacilityById(facilityId)
-                .map(start.spring.io.backend.model.Facility::getName)
+                .map(Facility::getName)
                 .orElse("Selected Facility");
         model.addAttribute("facilityId", facilityId);
         model.addAttribute("facilityName", facilityName);
@@ -73,7 +75,7 @@ public class ReservationController {
         Integer userId = 1;
         if (authentication != null && authentication.isAuthenticated()) {
             userId = userService.getUserByEmail(authentication.getName())
-                    .map(start.spring.io.backend.model.User::getUserId)
+                    .map(User::getUserId)
                     .orElse(1);
         }
         reservation.setUserId(userId);
