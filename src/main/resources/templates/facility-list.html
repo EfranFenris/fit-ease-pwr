@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Sports Facilities</title>
+    <th:block th:replace="~{fragments/navbar :: nav-header}"></th:block>
     <style>
         :root {
             --primary: #4b3df0;
@@ -25,83 +26,6 @@
             font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
             color: var(--text);
             background: var(--bg);
-        }
-
-        header {
-            background: #fff;
-            border-bottom: 1px solid var(--border);
-            padding: 20px 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .brand-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            background: var(--primary);
-            display: grid;
-            place-items: center;
-            color: #fff;
-            font-size: 20px;
-        }
-
-        .brand h1 {
-            font-size: 18px;
-            margin: 0;
-        }
-
-        .brand p {
-            margin: 2px 0 0;
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        .logout {
-            color: var(--muted);
-            text-decoration: none;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .tabs {
-            background: #fff;
-            border-bottom: 1px solid var(--border);
-            padding: 0 32px;
-        }
-
-        .tabs ul {
-            list-style: none;
-            display: flex;
-            gap: 26px;
-            margin: 0;
-            padding: 0;
-        }
-
-        .tabs a {
-            text-decoration: none;
-            color: var(--muted);
-            padding: 16px 4px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            border-bottom: 3px solid transparent;
-            font-size: 14px;
-        }
-
-        .tabs a.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-            font-weight: 600;
         }
 
         main {
@@ -227,37 +151,11 @@
             margin-top: 24px;
         }
 
-        @media (max-width: 640px) {
-            header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-            }
 
-            .tabs {
-                overflow-x: auto;
-            }
-        }
     </style>
 </head>
 <body>
-<header>
-    <div class="brand">
-        <div class="brand-icon">📅</div>
-        <div>
-            <h1>Sports Facilities</h1>
-            <p th:text="${#strings.isEmpty(userName) ? 'Welcome' : 'Welcome, ' + userName}"></p>
-        </div>
-    </div>
-    <a class="logout" href="/logout">↗ Logout</a>
-</header>
-
-<nav class="tabs">
-    <ul>
-        <li><a class="active" href="/facilities">📅 Available Spaces</a></li>
-        <li><a href="/reservations">📋 My Bookings</a></li>
-    </ul>
-</nav>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <main>
     <div class="page-title">

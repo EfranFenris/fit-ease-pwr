@@ -14,11 +14,11 @@
             /* LA MAGIA DEL CENTRADO: CSS Grid */
             .nav-grid-container {
                 display: grid;
-                grid-template-columns: 1fr auto 1fr; /* Tres columnas: laterales flexibles, centro exacto */
+                grid-template-columns: auto 1fr auto; /* Logo, Espacio flexible, Botones/Auth */
                 align-items: center;
                 width: 100%;
                 padding: 10px 40px;
-                box-sizing: border-box; /* Evita que el padding sume ancho */
+                box-sizing: border-box;
             }
 
             .nav-column-left { display: flex; align-items: center; gap: 15px; }
@@ -65,15 +65,19 @@
                 </a>
 
             </div>
-            <ul class="nav-column-center">
-                <li><a th:href="@{/facilities}" class="nav-item">Facilities</a></li>
-                <li sec:authorize="isAuthenticated()"><a th:href="@{/reservations}" class="nav-item">Reservations</a></li>
-                <li sec:authorize="isAuthenticated()"><a th:href="@{/maintenance-requests/dashboard}" class="nav-item active">Maintenance</a></li>
-                <li sec:authorize="isAuthenticated()"><a th:href="@{/users}" class="nav-item">Users</a></li>
+            <ul class="nav-column-center" sec:authorize="isAuthenticated()">
+                <li><a th:href="@{/facilities}" class="nav-item" th:classappend="${currentPage == 'facilities'} ? 'active' : ''">Facilities</a></li>
+                <li><a th:href="@{/reservations}" class="nav-item" th:classappend="${currentPage == 'reservations'} ? 'active' : ''">My Bookings</a></li>
+                <li sec:authorize="hasRole('admin')"><a th:href="@{/reservations}" class="nav-item" th:classappend="${currentPage == 'admin-reservations'} ? 'active' : ''">Reservations</a></li>
+                <li sec:authorize="hasRole('admin')"><a th:href="@{/maintenance-requests/dashboard}" class="nav-item" th:classappend="${currentPage == 'maintenance'} ? 'active' : ''">Maintenance</a></li>
+                <li sec:authorize="hasRole('admin')"><a th:href="@{/users}" class="nav-item" th:classappend="${currentPage == 'users'} ? 'active' : ''">Users</a></li>
             </ul>
 
             <div class="nav-column-right">
-                <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="auth-text">Log in</a>
+                <div sec:authorize="!isAuthenticated()" style="display: flex; gap: 12px;">
+                    <a th:href="@{/login}" class="auth-text" style="border: 2px solid #5D5FEF; padding: 8px 16px; border-radius: 8px; color: #5D5FEF;">Sign in</a>
+                    <a th:href="@{/signup}" class="auth-text" style="background: #5D5FEF; color: white; padding: 8px 16px; border-radius: 8px;">Sign up</a>
+                </div>
                 <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display:inline;">
                     <button type="submit" class="auth-text">↪ Log out</button>
                 </form>

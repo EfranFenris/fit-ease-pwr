@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitEasePWR - Sports Facility Management</title>
+    <th:block th:replace="~{fragments/navbar :: nav-header}"></th:block>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4b3df0;
+            --primary-dark: #3a2fd6;
+            --secondary: #ff6b1a;
+            --text: #0f172a;
+            --muted: #667085;
+            --border: #e5e7eb;
+            --bg: #f5f7fb;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            color: var(--text);
+            background: radial-gradient(circle at 20% 20%, rgba(75, 61, 240, 0.08), transparent 30%),
+                        radial-gradient(circle at 80% 0%, rgba(255, 107, 26, 0.08), transparent 30%),
+                        linear-gradient(135deg, #f5f7fb 0%, #e8ecf9 100%);
+            min-height: 100vh;
+        }
+
+        .btn {
+            text-decoration: none;
+            padding: 16px 30px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            letter-spacing: 0.2px;
+        }
+
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 70px);
+            padding: 64px 20px 80px;
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 760px;
+            animation: fadeInUp 0.8s ease-out;
+            padding: 0 16px;
+        }
+
+        .hero-logo {
+            margin: 0 auto 28px;
+        }
+
+        .hero-logo img {
+            height: 140px;
+            width: auto;
+            display: block;
+            margin: 0 auto;
+            filter: drop-shadow(0 10px 25px rgba(75, 61, 240, 0.18));
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 28px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 58px;
+            color: #fff;
+            box-shadow: 0 16px 36px rgba(75, 61, 240, 0.25);
+        }
+
+        .hero h1 {
+            font-size: 52px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            color: var(--text);
+            line-height: 1.05;
+            letter-spacing: -0.5px;
+            white-space: nowrap;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: var(--muted);
+            margin-bottom: 36px;
+            line-height: 1.7;
+        }
+
+        .hero-highlight {
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .btn-primary-large {
+            background: var(--primary);
+            color: #fff;
+            padding: 18px 42px;
+            font-size: 19px;
+            box-shadow: 0 12px 24px rgba(75, 61, 240, 0.25);
+        }
+
+        .btn-primary-large:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 16px 30px rgba(75, 61, 240, 0.32);
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 48px 16px 64px;
+            }
+
+            .hero-content {
+                padding: 36px 24px;
+            }
+
+            .hero h1 {
+                font-size: 34px;
+                white-space: normal;
+            }
+
+            .hero p {
+                font-size: 17px;
+            }
+
+            .btn-primary-large,
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+    .input-wrapper {
+        position: relative;
+        margin-bottom: 16px;
+    }
+
+    .input-wrapper i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+    }
+
+    .input-wrapper input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(75, 61, 240, 0.12);
+        }
+
+        .auth-submit {
+            width: 100%;
+            justify-content: center;
+            margin-top: 4px;
+        }
+
+        .auth-footer {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .auth-footer a {
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+            }
+
+            .btn-primary-large,
+            .btn-secondary-large {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .navbar {
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+
+            .navbar-auth {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="hero">
+        <div class="hero-content">
+            <h1><span class="hero-highlight">FitEasePWR</span> for Sports Facilities</h1>
+
+            <p>Manage all Politechnika Wroclawska sports facilities in one place.</p>
+
+            <div class="hero-actions">
+                <a th:href="@{/login}" class="btn btn-primary-large">
+                    <i class="fa-solid fa-rocket"></i>
+                    Start now
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

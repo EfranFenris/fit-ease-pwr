@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -64,6 +65,7 @@ public class MaintenanceRequestController {
         model.addAttribute("userNames", userNames);
         model.addAttribute("facilityNames", facilityNames);
         model.addAttribute("newRequest", new MaintenanceRequest());
+        model.addAttribute("currentPage", "maintenance");
         return "maintenance-request-list";
     }
 

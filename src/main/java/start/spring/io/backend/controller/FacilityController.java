@@ -46,6 +46,7 @@ public class FacilityController {
         model.addAttribute("facilityCards", cards);
         model.addAttribute("newFacility", new Facility());
         model.addAttribute("userName", userName);
+        model.addAttribute("currentPage", "facilities");
         return "facility-list";
     }
 

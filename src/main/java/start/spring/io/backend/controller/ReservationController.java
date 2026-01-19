@@ -38,6 +38,7 @@ public class ReservationController {
     @GetMapping
     public String list(Model model) {
         model.addAttribute("reservations", service.getAll());
+        model.addAttribute("currentPage", "reservations");
         model.addAttribute("newReservation", new Reservation());
         return "reservation-list";
     }
