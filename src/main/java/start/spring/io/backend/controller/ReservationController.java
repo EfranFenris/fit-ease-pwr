@@ -81,7 +81,8 @@ public class ReservationController {
             @RequestParam("endTime") String endTime,
             @RequestParam("participants") Integer participants,
             @RequestParam(value = "purpose", required = false) String purpose,
-            Authentication authentication) {
+            Authentication authentication,
+            Model model) {
         Reservation reservation = new Reservation();
         reservation.setFacilityId(facilityId);
         reservation.setParticipants(participants);
@@ -90,6 +91,10 @@ public class ReservationController {
         LocalDate date = LocalDate.parse(bookingDate);
         LocalTime start = LocalTime.parse(startTime);
         LocalTime end = LocalTime.parse(endTime);
+
+        if (!end.isAfter(start)) {
+            return bookingError(model, facilityId, "End time must be after the start time.");
+        }
         reservation.setDate(LocalDateTime.of(date, start));
         reservation.setStartTime(start);
         reservation.setEndTime(end);
@@ -101,6 +106,14 @@ public class ReservationController {
                     .orElse(1);
         }
         reservation.setUserId(userId);
+
+        if (service.hasOverlap(facilityId, date, start, end)) {
+            return bookingError(model, facilityId, "That facility is already booked for the selected time.");
+        }
+
+        if (service.hasUserOverlap(userId, date, start, end)) {
+            return bookingError(model, facilityId, "You already have another booking at that time.");
+        }
 
         service.create(reservation);
         return "redirect:/facilities";
@@ -196,5 +209,15 @@ public class ReservationController {
                 endDateTime,
                 reservation.getParticipants() == null ? 0 : reservation.getParticipants(),
                 purpose);
+    }
+
+    private String bookingError(Model model, Integer facilityId, String message) {
+        String facilityName = facilityService.getFacilityById(facilityId)
+                .map(Facility::getName)
+                .orElse("Selected Facility");
+        model.addAttribute("facilityId", facilityId);
+        model.addAttribute("facilityName", facilityName);
+        model.addAttribute("overlapError", message);
+        return "reservation-booking";
     }
 }

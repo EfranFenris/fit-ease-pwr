@@ -10,4 +10,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
     List<Reservation> findByUserId(Integer userId);
 
     List<Reservation> findByFacilityIdAndDateBetween(Integer facilityId, LocalDateTime start, LocalDateTime end);
+
+    List<Reservation> findByUserIdAndDateBetween(Integer userId, LocalDateTime start, LocalDateTime end);
 }

@@ -43,6 +43,13 @@ public class ReservationService {
                 .anyMatch(existing -> timesOverlap(startTime, endTime, existing.getStartTime(), existing.getEndTime()));
     }
 
+    public boolean hasUserOverlap(Integer userId, LocalDate date, LocalTime startTime, LocalTime endTime) {
+        LocalDateTime dayStart = date.atStartOfDay();
+        LocalDateTime dayEnd = date.plusDays(1).atStartOfDay().minusNanos(1);
+        return repo.findByUserIdAndDateBetween(userId, dayStart, dayEnd).stream()
+                .anyMatch(existing -> timesOverlap(startTime, endTime, existing.getStartTime(), existing.getEndTime()));
+    }
+
     public Optional<Reservation> update(Integer id, Reservation details) {
         return repo.findById(id).map(r -> {
             r.setUserId(details.getUserId());
