@@ -8,5 +8,7 @@ public record FacilityCardView(
         String location,
         int capacity,
         String statusLabel,
-        String statusClass) {
+        String statusClass,
+        boolean hasActiveMaintenance // <--- NUEVO CAMPO
+) {
 }

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Manager Dashboard</title>
+    <th:block th:replace="~{fragments/navbar :: nav-header}"></th:block>
+    <style>
+        /* Reutilizamos tus estilos base */
+        :root { --bg: #f5f7fb; --card: #ffffff; --text: #0f172a; --muted: #64748b; --danger: #ef4444; --success: #22c55e; }
+        body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+
+        .section-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; color: #333; display: flex; align-items: center; justify-content: space-between; }
+        .badge-count { background: #4f46e5; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; margin-left: 10px; }
+
+        /* TABLAS */
+        .admin-table { width: 100%; background: var(--card); border-radius: 12px; border-collapse: collapse; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 40px; }
+        .admin-table th, .admin-table td { padding: 16px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        .admin-table th { background: #f8fafc; font-weight: 600; color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .admin-table tr:last-child td { border-bottom: none; }
+        .admin-table tr:hover { background: #f8fafc; }
+
+        .btn-sm { padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; display: inline-block; }
+        .btn-penalty { background: #fee2e2; color: #991b1b; }
+        .btn-penalty:hover { background: #fecaca; }
+
+        /* ETIQUETAS DE TIPO DE PENALTY */
+        .tag { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .tag-noshow { background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
+        .tag-late { background: #fff7ed; color: #f97316; border: 1px solid #fed7aa; }
+        .empty-msg { text-align: center; padding: 30px; color: var(--muted); font-style: italic; }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container">
+
+    <div class="section-title">
+        <span>📅 Today's Reservations (Roll Call)</span>
+        <span class="badge-count" th:text="${#lists.size(todaysReservations)}">0</span>
+    </div>
+
+    <table class="admin-table" th:if="${!#lists.isEmpty(todaysReservations)}">
+        <thead>
+        <tr>
+            <th>Time</th>
+            <th>Facility</th>
+            <th>User (Email)</th> <th>Participants</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="card : ${todaysReservations}">
+            <td>
+                <span style="font-weight:600;" th:text="${#temporals.format(card.startDateTime, 'HH:mm')}"></span> -
+                <span th:text="${#temporals.format(card.endDateTime, 'HH:mm')}"></span>
+            </td>
+            <td th:text="${card.facilityName}">Facility</td>
+
+            <td>
+                <span style="font-weight: 600; display: block;" th:text="${card.reservation.user.name}">Name</span>
+                <span style="font-size: 0.85em; color: #666;" th:text="${card.reservation.user.email}">Email</span>
+            </td>
+
+            <td th:text="${card.participants}">4</td>
+        </tr>
+        </tbody>
+    </table>
+    <div th:if="${#lists.isEmpty(todaysReservations)}" class="empty-msg">
+        No reservations scheduled for today.
+    </div>
+
+
+    <div class="section-title" style="margin-top: 50px;">
+        <span>⚠️ Penalty Log</span>
+    </div>
+
+    <table class="admin-table" th:if="${!#lists.isEmpty(penalties)}">
+        <thead>
+        <tr>
+            <th>Date</th>
+            <th>User</th> <th>Type</th>
+            <th>Reason</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="penalty : ${penalties}">
+            <td th:text="${#temporals.format(penalty.datehour, 'dd/MM/yyyy HH:mm')}">Date</td>
+
+            <td>
+                <span style="font-weight: 600; display: block;" th:text="${penalty.user.name}">Name</span>
+                <span style="font-size: 0.85em; color: #666;" th:text="${penalty.user.email}">Email</span>
+            </td>
+
+            <td>
+                <span class="tag tag-noshow" th:if="${#strings.contains(penalty.description, 'No-Show')}">No Show</span>
+                <span class="tag tag-late" th:if="${#strings.contains(penalty.description, 'Late cancellation')}">Late Cancel</span>
+                <span class="tag" th:unless="${#strings.contains(penalty.description, 'No-Show') or #strings.contains(penalty.description, 'Late cancellation')}">General</span>
+            </td>
+            <td th:text="${penalty.description}">Description</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

@@ -24,6 +24,9 @@ public class Facility {
     @Column(name = "status", nullable = false)
     private String status;
 
+    @Column(name = "status_reason")
+    private String statusReason;
+
     public Facility() {
     }
 
@@ -63,6 +66,14 @@ public class Facility {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getStatusReason() {
+        return statusReason;
+    }
+
+    public void setStatusReason(String statusReason) {
+        this.statusReason = statusReason;
     }
 }
 

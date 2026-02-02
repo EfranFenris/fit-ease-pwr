@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import start.spring.io.backend.dto.FacilityCardView;
 import start.spring.io.backend.model.Facility;
 import start.spring.io.backend.service.FacilityService;
+import start.spring.io.backend.service.MaintenanceRequestService;
 import start.spring.io.backend.service.UserService;
 
 @Controller
@@ -22,10 +23,13 @@ public class FacilityController {
 
     private final FacilityService service;
     private final UserService userService;
+    private final MaintenanceRequestService maintenanceService; // 1. Inyectar nuevo servicio
 
-    public FacilityController(FacilityService service, UserService userService) {
+    // 2. Actualizar constructor
+    public FacilityController(FacilityService service, UserService userService, MaintenanceRequestService maintenanceService) {
         this.service = service;
         this.userService = userService;
+        this.maintenanceService = maintenanceService;
     }
 
     /** Lista todas las facilities */
@@ -124,6 +128,24 @@ public class FacilityController {
         String statusLabel = available ? "Available" : "Unavailable";
         String statusClass = available ? "status-available" : "status-unavailable";
 
-        return new FacilityCardView(facility, imageUrl, location, capacity, statusLabel, statusClass);
+        // 3. Consultar si hay mantenimiento activo
+        boolean hasActiveMaintenance = maintenanceService.hasActiveRequests(facility.getFacilityId());
+
+        // 4. Pasar el nuevo booleano al constructor del DTO
+        return new FacilityCardView(facility, imageUrl, location, capacity, statusLabel, statusClass, hasActiveMaintenance);
+    }
+
+    /** Toggle status between Available and Unavailable (Solo Admin) */
+    @PostMapping("/status/{id}/toggle")
+    public String toggleStatus(@PathVariable Integer id) {
+        service.getFacilityById(id).ifPresent(facility -> {
+            // Si es 'Available' o 'Free' pasa a 'Unavailable', si no, vuelve a 'Available'
+            boolean isAvailable = "Available".equalsIgnoreCase(facility.getStatus())
+                    || "Free".equalsIgnoreCase(facility.getStatus());
+
+            facility.setStatus(isAvailable ? "Unavailable" : "Available");
+            service.updateFacility(id, facility);
+        });
+        return "redirect:/facilities";
     }
 }

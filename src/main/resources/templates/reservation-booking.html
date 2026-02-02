@@ -1,49 +1,167 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>New Booking</title>
+    <title th:text="${isEditMode} ? 'Edit Booking' : 'New Booking'">Booking</title>
     <style>
-        /* ... tus estilos CSS se mantienen igual ... */
-        :root { --primary: #4b3df0; --primary-dark: #3a2fd6; --muted: #667085; --border: #e5e7eb; --bg: #f3f5f9; }
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: "Segoe UI", sans-serif; background: linear-gradient(135deg, #e8ecf7, #f6f7fb); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
-        .modal { width: 100%; max-width: 520px; background: #fff; border-radius: 18px; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18); overflow: hidden; }
-        .modal-header { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-        .modal-header h1 { margin: 0; font-size: 18px; }
-        .modal-header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
-        .alert { background: #fff4f4; border: 1px solid #f7c6c6; color: #b42318; border-radius: 12px; padding: 12px 14px; font-size: 13px; }
-        .close { text-decoration: none; color: var(--muted); font-size: 20px; padding: 4px 8px; }
-        form { padding: 20px 22px 24px; display: grid; gap: 18px; }
-        label { font-size: 13px; color: var(--muted); margin-bottom: 6px; display: block; }
-        input, select, textarea { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); font-size: 14px; font-family: inherit; }
-        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-        textarea { min-height: 90px; resize: vertical; }
-        .actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 6px; }
-        .btn { padding: 12px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; font-size: 14px; text-decoration: none; text-align: center; }
-        .btn-cancel { background: #f2f4f7; color: #111827; }
-        .btn-primary { background: var(--primary); color: #fff; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        @media (max-width: 520px) { .grid-2 { grid-template-columns: 1fr; } }
+        :root {
+            --primary: #4b3df0;
+            --primary-dark: #3a2fd6;
+            --muted: #667085;
+            --border: #e5e7eb;
+            --bg: #f3f5f9;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #e8ecf7, #f6f7fb);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 520px;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h1 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .modal-header p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .alert {
+            background: #fff4f4;
+            border: 1px solid #f7c6c6;
+            color: #b42318;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 13px;
+        }
+
+        .close {
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 20px;
+            padding: 4px 8px;
+        }
+
+        form {
+            padding: 20px 22px 24px;
+            display: grid;
+            gap: 18px;
+        }
+
+        label {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .btn {
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn-cancel {
+            background: #f2f4f7;
+            color: #111827;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        @media (max-width: 520px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
 <div class="modal">
     <div class="modal-header">
         <div>
-            <h1>New Booking</h1>
-            <p th:text="${facilityName}"></p>
+            <h1 th:text="${isEditMode} ? 'Edit Booking' : 'New Booking'">New Booking</h1>
+            <p th:text="${facilityName}">Facility Name</p>
         </div>
-        <a class="close" href="/facilities">×</a>
+        <a class="close" th:href="${isEditMode} ? '/reservations' : '/facilities'">×</a>
     </div>
 
-    <form th:action="@{/reservations/book}" method="post">
+    <form th:action="${isEditMode} ? @{/reservations/edit/{id}(id=${reservationId})} : @{/reservations/book}" method="post">
+
         <input type="hidden" name="facilityId" th:value="${facilityId}" />
 
         <div class="alert" th:if="${overlapError}" th:text="${overlapError}"></div>
 
         <div>
             <label for="bookingDate">Date</label>
-            <input id="bookingDate" name="bookingDate" type="date" required />
+            <input id="bookingDate" name="bookingDate" type="date" required
+                   th:value="${defaultDate}" />
         </div>
 
         <div class="grid-2">
@@ -87,8 +205,12 @@
         </div>
 
         <div class="actions">
-            <a class="btn btn-cancel" href="/facilities">Cancel</a>
-            <button class="btn btn-primary" type="submit">Confirm Booking</button>
+            <a class="btn btn-cancel" th:href="${isEditMode} ? '/reservations' : '/facilities'">Cancel</a>
+
+            <button class="btn btn-primary" type="submit"
+                    th:text="${isEditMode} ? 'Update Booking' : 'Confirm Booking'">
+                Confirm Booking
+            </button>
         </div>
     </form>
 </div>
@@ -98,11 +220,13 @@
     const durationSelect = document.getElementById("duration");
     const bookingDateInput = document.getElementById("bookingDate");
 
+    // Convertir "10:30" a minutos totales
     const toMinutes = (time) => {
         const [hours, minutes] = time.split(":").map(Number);
         return hours * 60 + minutes;
     };
 
+    // Convertir minutos totales a "10:30"
     const toTimeString = (totalMinutes) => {
         const hours = Math.floor(totalMinutes / 60)
             .toString()
@@ -111,6 +235,7 @@
         return `${hours}:${minutes}`;
     };
 
+    // Generar opciones de 06:00 a 22:00
     const buildTimeSlots = () => {
         startTimeSelect.innerHTML = '<option value="" disabled selected>Select a start time</option>';
         for (let minutes = 360; minutes <= 1320; minutes += 30) {
@@ -121,6 +246,7 @@
         }
     };
 
+    // Calcular hora fin automáticamente
     const updateEndTime = () => {
         const start = startTimeSelect.value;
         const duration = Number(durationSelect.value);
@@ -132,6 +258,7 @@
         endTimeInput.value = toTimeString(endMinutes);
     };
 
+    // Establecer fecha mínima como hoy (solo si no estamos editando o si prefieres forzarlo siempre)
     const initMinDate = () => {
         const today = new Date();
         const year = today.getFullYear();
@@ -140,20 +267,24 @@
         bookingDateInput.min = `${year}-${month}-${day}`;
     };
 
-    // 1. Construimos las opciones del desplegable
+    // --- INICIALIZACIÓN ---
+
+    // 1. Construir el desplegable de horas
     buildTimeSlots();
 
-    // 2. NUEVO: Leemos si hay una hora por defecto y la seleccionamos
+    // 2. Pre-seleccionar la hora si viene del servidor (Edición o Re-booking)
     const defaultTime = startTimeSelect.getAttribute("data-default-time");
     if (defaultTime) {
         startTimeSelect.value = defaultTime;
     }
 
-    // 3. Calculamos la hora de fin basándonos en la hora que acabamos de seleccionar
+    // 3. Calcular la hora de fin inicial
     updateEndTime();
 
+    // 4. Bloquear fechas pasadas
     initMinDate();
 
+    // Event Listeners para recálculos
     startTimeSelect.addEventListener("change", updateEndTime);
     durationSelect.addEventListener("change", updateEndTime);
 </script>

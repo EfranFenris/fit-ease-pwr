@@ -242,6 +242,12 @@
                         Report Issue
                     </a>
 
+                    <a class="btn btn-outline"
+                       th:if="${card.statusLabel == 'Upcoming'}"
+                       th:href="@{/reservations/edit/{id}(id=${card.reservation.reservationId})}">
+                        Edit Booking
+                    </a>
+
                     <a class="btn btn-danger"
                        th:if="${card.statusLabel == 'Upcoming'}"
                        th:href="@{/reservations/delete/{id}(id=${card.reservation.reservationId})}"

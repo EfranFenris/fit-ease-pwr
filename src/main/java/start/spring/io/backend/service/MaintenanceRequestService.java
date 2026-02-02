@@ -24,12 +24,10 @@ public class MaintenanceRequestService {
         this.facilityService = facilityService;
     }
 
-    /** Obtiene todas las requests (Hibernate ya trae User y Facility dentro) */
     public List<MaintenanceRequest> getAllRequests() {
         return repository.findAll();
     }
 
-    /** Obtiene requests filtradas usando la query del repositorio */
     public List<MaintenanceRequest> getFilteredRequests(String status) {
         return repository.findFiltered(status);
     }
@@ -38,8 +36,9 @@ public class MaintenanceRequestService {
         return repository.findById(id);
     }
 
-    /** * Crea una request buscando las entidades User y Facility por sus IDs.
-     */
+    // --- MÉTODOS DE CREACIÓN ---
+
+    // 1. Método antiguo (busca por IDs): Lo mantenemos por si acaso
     public MaintenanceRequest createRequest(MaintenanceRequest request, Integer userId, Integer facilityId) {
         User user = userService.getUserById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
@@ -48,25 +47,35 @@ public class MaintenanceRequestService {
 
         request.setUser(user);
         request.setFacility(facility);
-        request.setRequestId(null); // Asegurar que es nuevo
-
+        request.setRequestId(null);
         return repository.save(request);
     }
 
-    /** Actualiza una request existente */
-    public Optional<MaintenanceRequest> updateRequest(Integer id, MaintenanceRequest requestDetails) {
-        return repository.findById(id).map(request -> {
-            // Nota: Aquí podrías añadir lógica para actualizar user/facility si fuera necesario
-            if(requestDetails.getUser() != null) request.setUser(requestDetails.getUser());
-            if(requestDetails.getFacility() != null) request.setFacility(requestDetails.getFacility());
+    // 2. NUEVO MÉTODO (Sobrecarga): Para el nuevo controlador que ya trae el objeto montado
+    public MaintenanceRequest createRequest(MaintenanceRequest request) {
+        return repository.save(request);
+    }
 
-            request.setDescription(requestDetails.getDescription());
-            request.setStatus(requestDetails.getStatus());
-            request.setReportDate(requestDetails.getReportDate());
-            request.setIssueType(requestDetails.getIssueType());
-            request.setSeverity(requestDetails.getSeverity());
-            return repository.save(request);
-        });
+    // --- MÉTODOS DE ACTUALIZACIÓN ---
+
+    // Este es el método que te daba ERROR en el controlador. Ahora lo añadimos e integramos tu lógica.
+    @Transactional
+    public void updateRequestStatus(Integer id, String status) {
+        // Si el estado es "IN_PROGRESS", usamos tu lógica para cerrar la pista
+        if ("IN_PROGRESS".equalsIgnoreCase(status)) {
+            markInProgress(id);
+        }
+        // Si el estado es "RESOLVED", usamos tu lógica para abrir la pista
+        else if ("RESOLVED".equalsIgnoreCase(status)) {
+            markResolved(id);
+        }
+        // Para cualquier otro estado (ej: PENDING), solo actualizamos el texto
+        else {
+            repository.findById(id).ifPresent(request -> {
+                request.setStatus(status);
+                repository.save(request);
+            });
+        }
     }
 
     @Transactional
@@ -74,7 +83,7 @@ public class MaintenanceRequestService {
         repository.findById(id).ifPresent(request -> {
             request.setStatus("IN_PROGRESS");
             repository.save(request);
-            // Accedemos al ID a través del objeto Facility
+            // Tu lógica: Cerrar la pista automáticamente
             facilityService.updateStatus(request.getFacility().getFacilityId(), "Unavailable");
         });
     }
@@ -84,9 +93,15 @@ public class MaintenanceRequestService {
         repository.findById(id).ifPresent(request -> {
             request.setStatus("RESOLVED");
             repository.save(request);
-            // Accedemos al ID a través del objeto Facility
+            // Tu lógica: Abrir la pista automáticamente
             facilityService.updateStatus(request.getFacility().getFacilityId(), "Available");
         });
+    }
+
+    // --- OTROS MÉTODOS ---
+
+    public boolean hasActiveRequests(Integer facilityId) {
+        return repository.existsByFacility_FacilityIdAndStatusNot(facilityId, "RESOLVED");
     }
 
     public boolean deleteRequest(Integer id) {

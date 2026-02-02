@@ -1,116 +1,118 @@
 package start.spring.io.backend.controller;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
+import start.spring.io.backend.model.Facility;
 import start.spring.io.backend.model.MaintenanceRequest;
 import start.spring.io.backend.model.User;
+import start.spring.io.backend.service.EmailService; // <--- Importar
 import start.spring.io.backend.service.FacilityService;
 import start.spring.io.backend.service.MaintenanceRequestService;
 import start.spring.io.backend.service.UserService;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/maintenance-requests")
 public class MaintenanceRequestController {
 
-    private final MaintenanceRequestService maintenanceRequestService;
-    private final UserService userService;
+    private final MaintenanceRequestService maintenanceService;
     private final FacilityService facilityService;
+    private final UserService userService;
+    private final EmailService emailService; // <--- Inyectar servicio
 
-    public MaintenanceRequestController(MaintenanceRequestService maintenanceRequestService,
+    public MaintenanceRequestController(MaintenanceRequestService maintenanceService,
+                                        FacilityService facilityService,
                                         UserService userService,
-                                        FacilityService facilityService) {
-        this.maintenanceRequestService = maintenanceRequestService;
-        this.userService = userService;
+                                        EmailService emailService) {
+        this.maintenanceService = maintenanceService;
         this.facilityService = facilityService;
+        this.userService = userService;
+        this.emailService = emailService;
     }
 
-    /** VISTA PRINCIPAL (Dashboard) */
     @GetMapping
-    public String listMaintenanceRequests(@RequestParam(required = false) String status, Model model) {
-
-        // 1. Obtener todas para los contadores
-        List<MaintenanceRequest> allRequests = maintenanceRequestService.getAllRequests();
-
-        long pendingCount = allRequests.stream().filter(r -> "PENDING".equals(r.getStatus())).count();
-        long inprogressCount = allRequests.stream().filter(r -> "IN_PROGRESS".equals(r.getStatus())).count();
-        long resolvedCount = allRequests.stream().filter(r -> "RESOLVED".equals(r.getStatus())).count();
-
-        // 2. Filtrar si es necesario
-        List<MaintenanceRequest> requestsToShow;
-        if (status != null && !status.isEmpty()) {
-            requestsToShow = maintenanceRequestService.getFilteredRequests(status);
+    public String listRequests(Model model, @RequestParam(value = "filter", required = false) String filter) {
+        List<MaintenanceRequest> requests;
+        if (filter != null && !filter.isEmpty()) {
+            requests = maintenanceService.getFilteredRequests(filter);
         } else {
-            requestsToShow = allRequests;
+            requests = maintenanceService.getAllRequests();
         }
-
-        // 3. Pasar a la vista
-        model.addAttribute("pendingCount", pendingCount);
-        model.addAttribute("inprogressCount", inprogressCount);
-        model.addAttribute("resolvedCount", resolvedCount);
-        model.addAttribute("requests", requestsToShow); // Esto ahora es List<MaintenanceRequest>
-        model.addAttribute("selectedStatus", status);
+        model.addAttribute("requests", requests);
+        model.addAttribute("filter", filter);
         model.addAttribute("currentPage", "maintenance");
-
-        return "maintenance-request-list";
+        return "maintenance-list";
     }
 
-    /** Mostrar formulario de creación */
     @GetMapping("/maintenance-request-form/{facilityId}")
-    public String showMaintenanceRequestForm(@PathVariable Integer facilityId, Model model) {
-        String facilityName = facilityService.getFacilityById(facilityId)
-                .map(start.spring.io.backend.model.Facility::getName)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid facility Id"));
-
-        model.addAttribute("facilityId", facilityId);
-        model.addAttribute("newRequest", new MaintenanceRequest());
-        model.addAttribute("facilityName", facilityName);
-        return "maintenance-request-form";
+    public String showRequestForm(@PathVariable Integer facilityId, Model model) {
+        Optional<Facility> facility = facilityService.getFacilityById(facilityId);
+        if (facility.isPresent()) {
+            MaintenanceRequest maintenanceRequest = new MaintenanceRequest();
+            maintenanceRequest.setFacility(facility.get());
+            model.addAttribute("maintenanceRequest", maintenanceRequest);
+            model.addAttribute("facilityName", facility.get().getName());
+            return "maintenance-request-form";
+        } else {
+            return "redirect:/facilities";
+        }
     }
 
-    /** Procesar formulario de creación */
-    @PostMapping("/maintenance-request-form")
-    public String saveMaintenanceRequestFromForm(
-            @ModelAttribute("newRequest") MaintenanceRequest request,
-            @RequestParam("facilityId") Integer facilityId, // Recibimos el ID explícitamente
-            @RequestParam(defaultValue = "facilities") String from,
-            Authentication authentication) {
+    @PostMapping("/add")
+    public String addRequest(@ModelAttribute MaintenanceRequest maintenanceRequest,
+                             @RequestParam("facilityId") Integer facilityId,
+                             Authentication authentication) {
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return "redirect:/login";
+        // 1. Vincular Facility
+        Facility facility = facilityService.getFacilityById(facilityId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Facility ID"));
+        maintenanceRequest.setFacility(facility);
+
+        // 2. Vincular Usuario (el que está logueado)
+        String userEmail = "";
+        String userName = "User";
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            User user = userService.getUserByEmail(authentication.getName()).orElse(null);
+            if (user != null) {
+                maintenanceRequest.setUser(user);
+                userEmail = user.getEmail();
+                userName = user.getName();
+            }
         }
 
-        request.setStatus("PENDING");
-        request.setReportDate(LocalDateTime.now());
+        // 3. Datos automáticos
+        maintenanceRequest.setReportDate(LocalDateTime.now());
+        maintenanceRequest.setStatus("PENDING");
 
-        // Obtener Usuario
-        String email = authentication.getName();
-        Integer userId = userService.getUserByEmail(email)
-                .map(User::getUserId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        // 4. Guardar
+        maintenanceService.createRequest(maintenanceRequest);
 
-        // Guardar usando el nuevo método del servicio
-        maintenanceRequestService.createRequest(request, userId, facilityId);
+        // 5. ENVIAR CORREO DE CONFIRMACIÓN
+        if (!userEmail.isEmpty()) {
+            String subject = "Maintenance Request Received: " + facility.getName();
+            String body = "Hello " + userName + ",\n\n" +
+                    "We have received your maintenance report for " + facility.getName() + ".\n" +
+                    "Issue: " + maintenanceRequest.getIssueType() + "\n\n" +
+                    "Our maintenance team will review it shortly.\n" +
+                    "Thank you for helping us keep FitEasePWR in top shape!\n\n" +
+                    "Best regards,\nFitEasePWR Team";
 
-        return "redirect:/" + from;
+            emailService.sendEmail(userEmail, subject, body);
+        }
+
+        return "redirect:/facilities";
     }
 
-    // --- ACCIONES DE ESTADO ---
-
-    @PostMapping("/status/{id}/in-progress")
-    public String startWork(@PathVariable Integer id) {
-        maintenanceRequestService.markInProgress(id);
-        return "redirect:/maintenance-requests";
-    }
-
-    @PostMapping("/status/{id}/resolved")
-    public String markResolved(@PathVariable Integer id) {
-        maintenanceRequestService.markResolved(id);
+    // Métodos para actualizar estado (solo admin/maintenance)
+    @PostMapping("/update-status/{id}")
+    public String updateStatus(@PathVariable Integer id, @RequestParam("status") String status) {
+        maintenanceService.updateRequestStatus(id, status);
         return "redirect:/maintenance-requests";
     }
 }

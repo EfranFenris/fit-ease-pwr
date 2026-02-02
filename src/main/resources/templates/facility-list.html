@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <title>Sports Facilities</title>
     <th:block th:replace="~{fragments/navbar :: nav-header}"></th:block>
@@ -181,17 +181,32 @@
                     <span>👥 <span th:text="'Capacity: ' + ${card.capacity} + ' people'"></span></span>
                 </div>
                 <div class="actions">
-                    <a class="btn btn-primary"
-                       th:href="@{/reservations/new/{id}(id=${card.facility.facilityId})}"
-                       th:classappend="${card.statusLabel != 'Available' ? 'btn-disabled' : ''}">
-                        Book Now
-                    </a>
+                    <form sec:authorize="hasRole('admin')"
+                          th:action="@{/facilities/status/{id}/toggle(id=${card.facility.facilityId})}"
+                          method="post"
+                          style="display:grid; margin-bottom: 0;"
+                          th:data-confirm-maintenance="${card.hasActiveMaintenance} ? '⚠️ WARNING: There is an ACTIVE maintenance request for this facility. Are you sure you want to set it to Available?' : ''">
 
-                    <a class="btn btn-secondary"
-                       th:href="@{/maintenance-requests/maintenance-request-form/{id}(id=${card.facility.facilityId})}"
-                       th:classappend="${card.statusLabel != 'Available' ? 'btn-disabled' : ''}">
-                        Report Issue
-                    </a>
+                        <button type="submit" class="btn"
+                                th:classappend="${card.statusLabel == 'Available'} ? 'btn-danger' : 'btn-primary'"
+                                th:text="${card.statusLabel == 'Available'} ? '⛔ Set Unavailable' : '✅ Set Available'"
+                                onclick="
+                    if (this.innerText.includes('Set Available')) {
+                        let msg = this.form.getAttribute('data-confirm-maintenance');
+                        if (msg) return confirm(msg);
+                    }
+                    return true;
+                ">
+                        </button>
+                    </form>
+
+                    <th:block sec:authorize="!hasRole('admin')">
+                        <a class="btn btn-primary"
+                           th:href="@{/reservations/new/{id}(id=${card.facility.facilityId})}"
+                           th:classappend="${card.statusLabel != 'Available' ? 'btn-disabled' : ''}">
+                            Book Now
+                        </a>
+                    </th:block>
                 </div>
             </div>
         </div>

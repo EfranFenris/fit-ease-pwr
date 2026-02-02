@@ -1,127 +1,69 @@
-// ===============================
-// Reservation.java
-// ===============================
 package start.spring.io.backend.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
 @Table(name = "reservation")
-/**
- * JPA entity mapping the "reservation" table.
- * Represents a reservation.
- */
 public class Reservation {
 
-    /** Auto-increment primary key. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reservationid")
     private Integer reservationId;
 
-    /** ID of the user making the reservation. */
-    @Column(name = "userid", nullable = false)
-    private Integer userId;
+    // CAMBIO IMPORTANTE: Relación con User
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "userid", nullable = false)
+    private User user;
 
-    /** ID of the facility being reserved. */
     @Column(name = "facilityid", nullable = false)
     private Integer facilityId;
 
-    /** Reservation date-time (base date). */
+    // ... resto de campos iguales ...
     @Column(name = "date", nullable = false)
     private LocalDateTime date;
 
-    /** Start time of the reservation. */
     @Column(name = "starttime", nullable = false)
     private LocalTime startTime;
 
-    /** End time of the reservation. */
     @Column(name = "endtime", nullable = false)
     private LocalTime endTime;
 
-    /** Number of participants. */
-    @Column(name = "participants", nullable = false)
+    @Column(name = "participants")
     private Integer participants;
 
-    /** Optional purpose/notes. */
-    @Column(name = "purpose", length = 250)
+    @Column(name = "purpose", columnDefinition = "TEXT")
     private String purpose;
 
-    /** No-args constructor required by JPA. */
-    public Reservation() {
-    }
+    public Reservation() {}
 
-    public Integer getReservationId() {
-        return reservationId;
-    }
+    // Getters y Setters Actualizados
+    public Integer getReservationId() { return reservationId; }
+    public void setReservationId(Integer reservationId) { this.reservationId = reservationId; }
 
-    public void setReservationId(Integer reservationId) {
-        this.reservationId = reservationId;
-    }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
-    public Integer getUserId() {
-        return userId;
-    }
+    // Helper para mantener compatibilidad si algún sitio pide getUserId()
+    public Integer getUserId() { return user != null ? user.getUserId() : null; }
 
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
+    public Integer getFacilityId() { return facilityId; }
+    public void setFacilityId(Integer facilityId) { this.facilityId = facilityId; }
 
-    public Integer getFacilityId() {
-        return facilityId;
-    }
+    public LocalDateTime getDate() { return date; }
+    public void setDate(LocalDateTime date) { this.date = date; }
 
-    public void setFacilityId(Integer facilityId) {
-        this.facilityId = facilityId;
-    }
+    public LocalTime getStartTime() { return startTime; }
+    public void setStartTime(LocalTime startTime) { this.startTime = startTime; }
 
-    public LocalDateTime getDate() {
-        return date;
-    }
+    public LocalTime getEndTime() { return endTime; }
+    public void setEndTime(LocalTime endTime) { this.endTime = endTime; }
 
-    public void setDate(LocalDateTime date) {
-        this.date = date;
-    }
+    public Integer getParticipants() { return participants; }
+    public void setParticipants(Integer participants) { this.participants = participants; }
 
-    public LocalTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public Integer getParticipants() {
-        return participants;
-    }
-
-    public void setParticipants(Integer participants) {
-        this.participants = participants;
-    }
-
-    public String getPurpose() {
-        return purpose;
-    }
-
-    public void setPurpose(String purpose) {
-        this.purpose = purpose;
-    }
+    public String getPurpose() { return purpose; }
+    public void setPurpose(String purpose) { this.purpose = purpose; }
 }
-
-

@@ -7,10 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 
 import start.spring.io.backend.model.MaintenanceRequest;
 
-/**
- * JPA repository for the MaintenanceRequest entity.
- * Provides basic CRUD operations.
- */
 public interface MaintenanceRequestRepository extends JpaRepository<MaintenanceRequest, Integer> {
 
     @Query("""
@@ -25,5 +21,9 @@ public interface MaintenanceRequestRepository extends JpaRepository<MaintenanceR
 
     List<MaintenanceRequest> findByStatus(String status);
 
-}
+    // CORRECCIÓN AQUÍ:
+    // Usamos 'Facility_FacilityId' (con guion bajo) para decirle a Spring explícitamente:
+    // "Entra en el objeto Facility y busca el campo facilityId"
+    boolean existsByFacility_FacilityIdAndStatusNot(Integer facilityId, String status);
 
+}

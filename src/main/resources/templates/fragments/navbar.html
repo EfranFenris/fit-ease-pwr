@@ -66,32 +66,27 @@
 
         <ul class="nav-column-center" sec:authorize="isAuthenticated()">
 
-            <li sec:authorize="hasAnyRole('user', 'admin')">
+            <li>
                 <a th:href="@{/facilities}" class="nav-item"
                    th:classappend="${currentPage == 'facilities'} ? 'active' : ''">Facilities</a>
             </li>
 
-            <li sec:authorize="hasAnyRole('user', 'admin')">
+            <li sec:authorize="hasRole('user')">
                 <a th:href="@{/reservations}" class="nav-item"
                    th:classappend="${currentPage == 'reservations'} ? 'active' : ''">My Bookings</a>
             </li>
 
             <li sec:authorize="hasRole('admin')">
-                <a th:href="@{/reservations}" class="nav-item"
-                   th:classappend="${currentPage == 'admin-reservations'} ? 'active' : ''">Reservations</a>
+                <a th:href="@{/reservations/manager}" class="nav-item"
+                   th:classappend="${currentPage == 'manager'} ? 'active' : ''">Penalties</a>
             </li>
 
-            <li sec:authorize="hasAnyRole('admin', 'maintenance')">
+            <li sec:authorize="hasRole('maintenance')">
                 <a th:href="@{/maintenance-requests}" class="nav-item"
                    th:classappend="${currentPage == 'maintenance'} ? 'active' : ''">Maintenance</a>
             </li>
 
-            <li sec:authorize="hasRole('admin')">
-                <a th:href="@{/users}" class="nav-item"
-                   th:classappend="${currentPage == 'users'} ? 'active' : ''">Users</a>
-            </li>
         </ul>
-
         <div class="nav-column-right">
             <div sec:authorize="!isAuthenticated()" style="display: flex; gap: 12px;">
                 <a th:href="@{/login}" class="auth-text" style="border: 2px solid #5D5FEF; padding: 8px 16px; border-radius: 8px; color: #5D5FEF;">Sign in</a>

@@ -1,28 +1,21 @@
 package start.spring.io.backend.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-
-// Use Table and Columns annotations to map class and fields to database table and columns explicitly
-import jakarta.persistence.Table;
-import jakarta.persistence.Column;
-
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-
-@Entity  // This tells JPA that this class is a database entity. 
-@Table(name = "penalty")  // Maps this entity to the "penalty" table in the database. By default, the table name would be the class name.
+@Entity
+@Table(name = "penalty")
 public class Penalty {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "penaltyid")
     private Integer penaltyId;
 
-    @Column(name = "userid", nullable = false)
-    private Integer userId;
+    // CAMBIO: Relación directa con User
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "userid", nullable = false)
+    private User user;
 
     @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
@@ -30,46 +23,26 @@ public class Penalty {
     @Column(name = "datehour", nullable = false)
     private LocalDateTime datehour;
 
-    // Constructors
     public Penalty() {
     }
 
-    public Penalty(Integer userId, String description, LocalDateTime datehour) {
-        this.userId = userId;
+    // Constructor actualizado
+    public Penalty(User user, String description, LocalDateTime datehour) {
+        this.user = user;
         this.description = description;
         this.datehour = datehour;
     }
 
-    // Getters and setters
-    public Integer getPenaltyId() {
-        return penaltyId;
-    }
+    public Integer getPenaltyId() { return penaltyId; }
+    public void setPenaltyId(Integer penaltyId) { this.penaltyId = penaltyId; }
 
-    public void setPenaltyId(Integer penaltyId) {
-        this.penaltyId = penaltyId;
-    }
+    // Getters/Setters actualizados
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
-    public Integer getUserId() {
-        return userId;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public LocalDateTime getDatehour() {
-        return datehour;
-    }
-
-    public void setDatehour(LocalDateTime datehour) {
-        this.datehour = datehour;
-    }
+    public LocalDateTime getDatehour() { return datehour; }
+    public void setDatehour(LocalDateTime datehour) { this.datehour = datehour; }
 }

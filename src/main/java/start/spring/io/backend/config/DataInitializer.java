@@ -35,47 +35,50 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        User maria = null;
-        User miryam = null;
+        User marta = null;
 
         // 1. Facilities
         if (facilityRepository.count() == 0) {
-            facilityRepository.save(new Facility("Tennis-Court-1", "Tennis", "Available"));
-            facilityRepository.save(new Facility("Badminton-Court-1", "Badminton", "Unavailable"));
-            facilityRepository.save(new Facility("Ping-Pong-1", "Ping Pong", "Available"));
-            facilityRepository.save(new Facility("Padel-Court-1", "Padel", "Available"));
-            facilityRepository.save(new Facility("Soccer-Field-Main", "Football", "Available"));
+            facilityRepository.save(new Facility("Tennis Court 1", "Tennis", "Available"));
+            facilityRepository.save(new Facility("Badminton Court 1", "Badminton", "Unavailable"));
+            facilityRepository.save(new Facility("Ping Pong 1", "Ping Pong", "Available"));
+            facilityRepository.save(new Facility("Padel Court 1", "Padel", "Available"));
+            facilityRepository.save(new Facility("Soccer Field Main", "Football", "Available"));
         }
 
         // 2. Users
-        if (!userRepository.findByEmail("juan@example.com").isPresent()) {
-            userRepository.save(new User("Juan Perez", "juan@example.com", "123456", "admin"));
+
+        // ADMIN
+        if (!userRepository.findByEmail("admin@test.com").isPresent()) {
+            userRepository.save(new User("Reservation Manager", "admin@test.com", "1234", "admin"));
         }
 
-        if (!userRepository.findByEmail("maria@example.com").isPresent()) {
-            maria = userRepository.save(new User("Maria Lopez", "maria@example.com", "password", "user"));
+        // USER NORMAL (CORREGIDO: tesst -> test)
+        if (!userRepository.findByEmail("user@test.com").isPresent()) {
+            userRepository.save(new User("Regular User", "user@test.com", "1234", "user"));
+        }
+
+        // MAINTENANCE
+        if (!userRepository.findByEmail("manteinance@test.com").isPresent()) {
+            userRepository.save(new User("Manteinance Staff", "manteinance@test.com", "1234", "maintenance"));
+        }
+
+        // MARTA (CORREGIDO: example.com -> test.com para que coincida)
+        if (!userRepository.findByEmail("marta@test.com").isPresent()) {
+            marta = userRepository.save(new User("Marta", "marta@test.com", "1234", "user"));
         } else {
-            maria = userRepository.findByEmail("maria@example.com").orElse(null);
-        }
-
-        if (!userRepository.findByEmail("miryam@example.com").isPresent()) {
-            miryam = userRepository.save(new User("Miryam Merchan", "miryam@example.com", "charlie", "maintenance"));
-        } else {
-            miryam = userRepository.findByEmail("miryam@example.com").orElse(null);
-        }
-
-        if (!userRepository.findByEmail("carmen@example.com").isPresent()) {
-            userRepository.save(new User("Carmen", "carmen@example.com", "uuuu", "user"));
+            // Si ya existe, la recuperamos para usarla en las multas
+            marta = userRepository.findByEmail("marta@test.com").orElse(null);
         }
 
         // 3. Penalty
-        if (maria != null && penaltyRepository.count() == 0) {
-            penaltyRepository.save(new Penalty(maria.getUserId(), "Did not show up without canceling", LocalDateTime.now().minusDays(1)));
+        if (marta != null && penaltyRepository.count() == 0) {
+            // Pasamos el OBJETO User, no el ID
+            penaltyRepository.save(new Penalty(marta, "Did not show up without canceling", LocalDateTime.now().minusDays(1)));
         }
 
-        // 4. Maintenance Request (CORREGIDO PARA JPA)
-        if (miryam != null && maintenanceRepository.count() == 0) {
-            // Buscamos la pista por nombre
+        // 4. Maintenance Request
+        if (marta != null && maintenanceRepository.count() == 0) {
             Facility badminton = facilityRepository.findAll().stream()
                     .filter(f -> f.getName().contains("Badminton"))
                     .findFirst()
@@ -83,10 +86,8 @@ public class DataInitializer implements CommandLineRunner {
 
             if (badminton != null) {
                 MaintenanceRequest req = new MaintenanceRequest();
-
-                // CAMBIO IMPORTANTE: Pasamos los OBJETOS, no los IDs
-                req.setUser(miryam);
-                req.setFacility(badminton);
+                req.setUser(marta); // Pasamos objeto User
+                req.setFacility(badminton); // Pasamos objeto Facility
 
                 req.setIssueType("Lighting Failure");
                 req.setDescription("The main lights are flickering and creating a hazard.");
