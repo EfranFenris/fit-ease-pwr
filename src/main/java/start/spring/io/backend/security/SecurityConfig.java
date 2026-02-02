@@ -42,14 +42,33 @@ public class SecurityConfig {
             .authenticationProvider(authenticationProvider())
             // 1. Configure authorization rules (from specific to general)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**").permitAll() // Allow public access to these paths
-                .requestMatchers("/facilities/**").authenticated() // All authenticated users can access
-                .requestMatchers("/reservations/**").authenticated() // All authenticated users can access
-                .requestMatchers("/users/**").hasRole("admin") // Only admin can access users
-                .requestMatchers("/maintenance-requests/dashboard").hasRole("admin") // Only admin can access dashboard
-                .requestMatchers("/maintenance-requests/**").authenticated() // All authenticated users can create requests
-                .requestMatchers("/admin/**").hasRole("admin") // Only admin can access
-                .anyRequest().authenticated() // All other requests require authentication
+                    // 1. Rutas públicas (Static resources, login, etc.)
+                    .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**").permitAll()
+
+                    // 2. Rutas básicas para usuarios autenticados
+                    .requestMatchers("/facilities/**").authenticated()
+                    .requestMatchers("/reservations/**").authenticated()
+
+                    // 3. LOGICA DE MANTENIMIENTO (El orden aquí es CRÍTICO)
+
+                    // A) PRIMERO: Permitir el formulario de reporte a CUALQUIER usuario autenticado (Estudiantes/Profesores)
+                    // Cubrimos tanto el GET (ver formulario) como el POST (enviar formulario)
+                    .requestMatchers(
+                            "/maintenance-requests/maintenance-request-form/**",
+                            "/maintenance-requests/maintenance-request-form"
+                    ).authenticated()
+
+                    // B) SEGUNDO: Bloquear TODO lo demás de mantenimiento (Lista, Editar, Cambiar estado)
+                    // Solo pueden entrar Maintenance Staff o Admin.
+                    // Esto protege la url "/maintenance-requests" (tu lista/dashboard)
+                    .requestMatchers("/maintenance-requests/**").hasAnyRole("maintenance", "admin")
+
+                    // 4. Rutas de administración
+                    .requestMatchers("/users/**").hasRole("admin")
+                    .requestMatchers("/admin/**").hasRole("admin")
+
+                    // 5. El resto requiere autenticación
+                    .anyRequest().authenticated()
             )
 
             // 2. Configure form login
