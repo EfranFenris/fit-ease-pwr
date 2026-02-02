@@ -230,10 +230,25 @@
                     <span>👥 <span th:text="${card.participants} + ' participants'"></span></span>
                 </div>
                 <div class="actions">
-                    <a class="btn btn-primary" th:href="@{/reservations/new/{id}(id=${card.reservation.facilityId})}">Book Again</a>
-                    <a class="btn btn-outline" th:href="@{/maintenance-requests/maintenance-request-form/{id}(id=${card.reservation.facilityId})}">Report Issue</a>
-                    <a class="btn btn-danger" th:href="@{/reservations/delete/{id}(id=${card.reservation.reservationId})}"
-                       onclick="return confirm('Cancel this booking?');">Cancel Booking</a>
+                    <a class="btn btn-primary"
+                       th:if="${card.statusLabel == 'Past'}"
+                       th:href="@{/reservations/rebook/{id}(id=${card.reservation.reservationId})}">
+                        Book Again
+                    </a>
+
+                    <a class="btn btn-outline"
+                       th:if="${card.statusLabel == 'Past'}"
+                       th:href="@{/maintenance-requests/maintenance-request-form/{id}(id=${card.reservation.facilityId})}">
+                        Report Issue
+                    </a>
+
+                    <a class="btn btn-danger"
+                       th:if="${card.statusLabel == 'Upcoming'}"
+                       th:href="@{/reservations/delete/{id}(id=${card.reservation.reservationId})}"
+                       th:data-confirm="${card.incursPenalty} ? 'WARNING: Cancellation is less than 24h away. You will receive a penalty. Proceed?' : 'Cancel this booking?'"
+                       onclick="return confirm(this.getAttribute('data-confirm'));">
+                        Cancel Booking
+                    </a>
                 </div>
             </div>
         </div>

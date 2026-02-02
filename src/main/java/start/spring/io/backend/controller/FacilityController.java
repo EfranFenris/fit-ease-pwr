@@ -81,36 +81,43 @@ public class FacilityController {
     }
 
     private FacilityCardView toCardView(Facility facility) {
+        // Usamos el tipo, pero protegemos contra nulos y pasamos a minúsculas
         String type = facility.getType() == null ? "" : facility.getType().toLowerCase();
-        String imageUrl = switch (type) {
-            case "tennis", "padel" ->
-                "https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=1000&q=80";
-            case "basketball" ->
-                "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1000&q=80";
-            case "soccer", "football" ->
-                "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1000&q=80";
-            case "badminton" ->
-                "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1000&q=80";
-            default ->
-                "https://images.unsplash.com/photo-1471295253337-3ceaaedca402?auto=format&fit=crop&w=1000&q=80";
-        };
 
-        String location = switch (type) {
-            case "tennis", "padel" -> "Racquet Zone";
-            case "basketball" -> "Central Pavilion";
-            case "soccer", "football" -> "North Sports Complex";
-            case "badminton" -> "Indoor Hall";
-            default -> "Main Sports Hub";
-        };
+        // --- 1. Determinar Imagen (Lógica "Contains") ---
+        String imageUrl;
+        if (type.contains("tennis") || type.contains("padel")) {
+            imageUrl = "https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=1000&q=80";
+        } else if (type.contains("basketball")) {
+            imageUrl = "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1000&q=80";
+        } else if (type.contains("soccer") || type.contains("football")) {
+            imageUrl = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1000&q=80";
+        } else if (type.contains("badminton")) {
+            imageUrl = "https://images.unsplash.com/photo-1626248316686-e74659b8eb2c?auto=format&fit=crop&w=1000&q=80"; // He cambiado la foto para que no sea igual a basket
+        } else {
+            // Default image
+            imageUrl = "https://images.unsplash.com/photo-1471295253337-3ceaaedca402?auto=format&fit=crop&w=1000&q=80";
+        }
 
-        int capacity = switch (type) {
-            case "soccer", "football" -> 22;
-            case "basketball" -> 10;
-            case "tennis", "padel" -> 4;
-            case "badminton" -> 6;
-            default -> 8;
-        };
+        // --- 2. Determinar Ubicación (Lógica "Contains") ---
+        String location;
+        if (type.contains("tennis") || type.contains("padel")) {
+            location = "Racquet Zone";
+        } else if (type.contains("basketball")) {
+            location = "Central Pavilion";
+        } else if (type.contains("soccer") || type.contains("football")) {
+            location = "North Sports Complex";
+        } else if (type.contains("badminton") || type.contains("ping")) {
+            location = "Indoor Hall";
+        } else {
+            location = "Main Sports Hub";
+        }
 
+        // --- 3. Determinar Capacidad (Usando el Servicio centralizado) ---
+        // Esto asegura que el "Max Participants" del formulario coincida con lo que muestras en la tarjeta
+        int capacity = service.getCapacityForType(type);
+
+        // --- 4. Estado ---
         boolean available = facility.getStatus() == null
                 || facility.getStatus().equalsIgnoreCase("free")
                 || facility.getStatus().equalsIgnoreCase("available");

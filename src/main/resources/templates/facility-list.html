@@ -151,7 +151,13 @@
             margin-top: 24px;
         }
 
-
+        .btn-disabled {
+            background-color: var(--unavailable) !important; /* Color gris */
+            color: #fff;
+            cursor: not-allowed;
+            pointer-events: none; /* Esto evita que se pueda hacer click */
+            opacity: 0.7;
+        }
     </style>
 </head>
 <body>
@@ -175,8 +181,17 @@
                     <span>👥 <span th:text="'Capacity: ' + ${card.capacity} + ' people'"></span></span>
                 </div>
                 <div class="actions">
-                    <a class="btn btn-primary" th:href="@{/reservations/new/{id}(id=${card.facility.facilityId})}">Book Now</a>
-                    <a class="btn btn-secondary" th:href="@{/maintenance-requests/maintenance-request-form/{id}(id=${card.facility.facilityId})}">Report Issue</a>
+                    <a class="btn btn-primary"
+                       th:href="@{/reservations/new/{id}(id=${card.facility.facilityId})}"
+                       th:classappend="${card.statusLabel != 'Available' ? 'btn-disabled' : ''}">
+                        Book Now
+                    </a>
+
+                    <a class="btn btn-secondary"
+                       th:href="@{/maintenance-requests/maintenance-request-form/{id}(id=${card.facility.facilityId})}"
+                       th:classappend="${card.statusLabel != 'Available' ? 'btn-disabled' : ''}">
+                        Report Issue
+                    </a>
                 </div>
             </div>
         </div>

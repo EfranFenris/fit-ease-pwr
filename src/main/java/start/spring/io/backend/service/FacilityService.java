@@ -11,28 +11,23 @@ import java.util.Optional;
 public class FacilityService {
     private final FacilityRepository repository;
 
-    /** Injects the repository dependency. */
     public FacilityService(FacilityRepository repository) {
         this.repository = repository;
     }
 
-    /** Get all Facilities. */
     public List<Facility> getAllFacilities() {
         return repository.findAll();
     }
 
-    /** Get a Facility by id. */
     public Optional<Facility> getFacilityById(Integer id) {
         return repository.findById(id);
     }
 
-    /** Create a new Facility. */
     public Facility createFacility(Facility request) {
         request.setFacilityId(null);
         return repository.save(request);
     }
 
-    /** Update an existing Facility. */
     public Optional<Facility> updateFacility(Integer id, Facility FacilityDetails) {
         return repository.findById(id).map(request -> {
             request.setFacilityId(FacilityDetails.getFacilityId());
@@ -43,12 +38,42 @@ public class FacilityService {
         });
     }
 
-    /** Delete a Facility by id. */
+    /**
+     * Método auxiliar para cambiar solo el estado de la facility.
+     * Usado por MaintenanceRequestService.
+     */
+    public void updateStatus(Integer facilityId, String newStatus) {
+        repository.findById(facilityId).ifPresent(facility -> {
+            facility.setStatus(newStatus);
+            repository.save(facility);
+        });
+    }
+
     public boolean deleteFacility(Integer id) {
         if (repository.existsById(id)) {
             repository.deleteById(id);
             return true;
         }
         return false;
+    }
+
+    /** * Devuelve la capacidad máxima basada en el tipo de facility.
+     */
+    /**
+     * Devuelve la capacidad máxima basada en el tipo de facility.
+     * Usa lógica "contains" para ser más flexible con los nombres.
+     */
+    public int getCapacityForType(String type) {
+        if (type == null) return 8; // Valor por defecto
+
+        String t = type.toLowerCase();
+
+        if (t.contains("soccer") || t.contains("football")) return 22;
+        if (t.contains("basketball")) return 10;
+        if (t.contains("tennis") || t.contains("padel")) return 4;
+        if (t.contains("badminton")) return 6;
+        if (t.contains("ping") || t.contains("pong")) return 2;
+
+        return 8; // Default
     }
 }

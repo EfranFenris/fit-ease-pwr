@@ -1,7 +1,6 @@
 package start.spring.io.backend.dto;
 
 import java.time.LocalDateTime;
-
 import start.spring.io.backend.model.Reservation;
 
 public record ReservationCardView(
@@ -15,5 +14,7 @@ public record ReservationCardView(
         LocalDateTime startDateTime,
         LocalDateTime endDateTime,
         int participants,
-        String purpose) {
+        String purpose,
+        boolean incursPenalty // <--- ¡ASEGÚRATE DE QUE ESTO ESTÁ AQUÍ!
+) {
 }

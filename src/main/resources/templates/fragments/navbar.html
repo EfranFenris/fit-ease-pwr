@@ -5,16 +5,15 @@
         <style>
             .main-navbar {
                 background: #ffffff;
-                width: 100%; /* Pantalla completa */
+                width: 100%;
                 box-shadow: 0 1px 3px rgba(0,0,0,0.05);
                 border-bottom: 1px solid #e2e8f0;
                 font-family: 'Segoe UI', sans-serif;
             }
 
-            /* LA MAGIA DEL CENTRADO: CSS Grid */
             .nav-grid-container {
                 display: grid;
-                grid-template-columns: auto 1fr auto; /* Logo, Espacio flexible, Botones/Auth */
+                grid-template-columns: auto 1fr auto;
                 align-items: center;
                 width: 100%;
                 padding: 10px 40px;
@@ -22,13 +21,13 @@
             }
 
             .nav-column-left { display: flex; align-items: center; gap: 15px; }
-            .nav-column-center { 
-                list-style: none; 
-                display: flex; 
-                gap: 35px; 
-                margin: 0; 
+            .nav-column-center {
+                list-style: none;
+                display: flex;
+                gap: 35px;
+                margin: 0;
                 padding: 0;
-                justify-content: center; /* Asegura el centro dentro de su celda */
+                justify-content: center;
             }
             .nav-column-right { display: flex; justify-content: flex-end; align-items: center; }
 
@@ -40,7 +39,7 @@
                 transition: color 0.2s;
             }
             .nav-item:hover, .nav-item.active { color: #5D5FEF; }
-            
+
             .auth-text {
                 background: none;
                 border: none;
@@ -56,34 +55,54 @@
     </th:block>
 </head>
 <body>
-    <nav th:fragment="navbar" class="main-navbar">
-        <div class="nav-grid-container">
-            
-            <div class="nav-column-left">
-                <a th:href="@{/facilities}">
-                    <img th:src="@{/images/logo.png}" alt="Logo" style="height: 42px; width: auto;">
-                </a>
+<nav th:fragment="navbar" class="main-navbar">
+    <div class="nav-grid-container">
 
-            </div>
-            <ul class="nav-column-center" sec:authorize="isAuthenticated()">
-                <li><a th:href="@{/facilities}" class="nav-item" th:classappend="${currentPage == 'facilities'} ? 'active' : ''">Facilities</a></li>
-                <li><a th:href="@{/reservations}" class="nav-item" th:classappend="${currentPage == 'reservations'} ? 'active' : ''">My Bookings</a></li>
-                <li sec:authorize="hasRole('admin')"><a th:href="@{/reservations}" class="nav-item" th:classappend="${currentPage == 'admin-reservations'} ? 'active' : ''">Reservations</a></li>
-                <li sec:authorize="hasRole('admin')"><a th:href="@{/maintenance-requests/dashboard}" class="nav-item" th:classappend="${currentPage == 'maintenance'} ? 'active' : ''">Maintenance</a></li>
-                <li sec:authorize="hasRole('admin')"><a th:href="@{/users}" class="nav-item" th:classappend="${currentPage == 'users'} ? 'active' : ''">Users</a></li>
-            </ul>
-
-            <div class="nav-column-right">
-                <div sec:authorize="!isAuthenticated()" style="display: flex; gap: 12px;">
-                    <a th:href="@{/login}" class="auth-text" style="border: 2px solid #5D5FEF; padding: 8px 16px; border-radius: 8px; color: #5D5FEF;">Sign in</a>
-                    <a th:href="@{/signup}" class="auth-text" style="background: #5D5FEF; color: white; padding: 8px 16px; border-radius: 8px;">Sign up</a>
-                </div>
-                <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display:inline;">
-                    <button type="submit" class="auth-text">↪ Log out</button>
-                </form>
-            </div>
-
+        <div class="nav-column-left">
+            <a th:href="@{/facilities}">
+                <img th:src="@{/images/logo.png}" alt="Logo" style="height: 42px; width: auto;">
+            </a>
         </div>
-    </nav>
+
+        <ul class="nav-column-center" sec:authorize="isAuthenticated()">
+
+            <li sec:authorize="hasAnyRole('user', 'admin')">
+                <a th:href="@{/facilities}" class="nav-item"
+                   th:classappend="${currentPage == 'facilities'} ? 'active' : ''">Facilities</a>
+            </li>
+
+            <li sec:authorize="hasAnyRole('user', 'admin')">
+                <a th:href="@{/reservations}" class="nav-item"
+                   th:classappend="${currentPage == 'reservations'} ? 'active' : ''">My Bookings</a>
+            </li>
+
+            <li sec:authorize="hasRole('admin')">
+                <a th:href="@{/reservations}" class="nav-item"
+                   th:classappend="${currentPage == 'admin-reservations'} ? 'active' : ''">Reservations</a>
+            </li>
+
+            <li sec:authorize="hasAnyRole('admin', 'maintenance')">
+                <a th:href="@{/maintenance-requests}" class="nav-item"
+                   th:classappend="${currentPage == 'maintenance'} ? 'active' : ''">Maintenance</a>
+            </li>
+
+            <li sec:authorize="hasRole('admin')">
+                <a th:href="@{/users}" class="nav-item"
+                   th:classappend="${currentPage == 'users'} ? 'active' : ''">Users</a>
+            </li>
+        </ul>
+
+        <div class="nav-column-right">
+            <div sec:authorize="!isAuthenticated()" style="display: flex; gap: 12px;">
+                <a th:href="@{/login}" class="auth-text" style="border: 2px solid #5D5FEF; padding: 8px 16px; border-radius: 8px; color: #5D5FEF;">Sign in</a>
+                <a th:href="@{/signup}" class="auth-text" style="background: #5D5FEF; color: white; padding: 8px 16px; border-radius: 8px;">Sign up</a>
+            </div>
+            <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display:inline;">
+                <button type="submit" class="auth-text">↪ Log out</button>
+            </form>
+        </div>
+
+    </div>
+</nav>
 </body>
 </html>
