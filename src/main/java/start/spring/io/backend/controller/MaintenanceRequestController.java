@@ -16,6 +16,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * This controller manages the Maintenance Requests.
+ * It allows users to report broken equipment and allows staff to see
+ * lists of issues and update their status (for example from "Pending" to "Fixed").
+ */
 @Controller
 @RequestMapping("/maintenance-requests")
 public class MaintenanceRequestController {
@@ -35,22 +40,31 @@ public class MaintenanceRequestController {
         this.emailService = emailService;
     }
 
-    // LISTADO (Sin cambios)
+    /**
+     * Displays a list of maintenance requests.
+     * It also calculates how many requests are Pending, In Progress, or Resolved
+     * so we can show those numbers on the dashboard.
+     * * @param filter An optional parameter (like "status=PENDING") to show only specific requests.
+     */
     @GetMapping
     public String listRequests(Model model, @RequestParam(value = "status", required = false) String filter) {
         List<MaintenanceRequest> allRequests = maintenanceService.getAllRequests();
 
+        // We count how many requests exist for each status to display sum label
         long pendingCount = allRequests.stream().filter(r -> "PENDING".equalsIgnoreCase(r.getStatus())).count();
         long inprogressCount = allRequests.stream().filter(r -> "IN_PROGRESS".equalsIgnoreCase(r.getStatus())).count();
         long resolvedCount = allRequests.stream().filter(r -> "RESOLVED".equalsIgnoreCase(r.getStatus())).count();
 
         List<MaintenanceRequest> displayedRequests;
+        // If the user clicked a filter button (like "Show only Pending"), we filter the list.
+        // Otherwise, we show everything.
         if (filter != null && !filter.isEmpty()) {
             displayedRequests = maintenanceService.getFilteredRequests(filter);
         } else {
             displayedRequests = allRequests;
         }
 
+        // Pass all the data to the HTML view
         model.addAttribute("requests", displayedRequests);
         model.addAttribute("pendingCount", pendingCount);
         model.addAttribute("inprogressCount", inprogressCount);
@@ -61,33 +75,42 @@ public class MaintenanceRequestController {
         return "maintenance-request-list";
     }
 
-    // --- FORMULARIO DE REPORTE (CORREGIDO) ---
+    /**
+     * Shows the form to report a problem with a specific facility.
+     * We need the 'facilityId' so we know exactly which court or field has the issue.
+     */
     @GetMapping("/maintenance-request-form/{facilityId}")
     public String showRequestForm(@PathVariable Integer facilityId, Model model) {
         Optional<Facility> facility = facilityService.getFacilityById(facilityId);
+        // We only show the form if the facility actually exists in our database
         if (facility.isPresent()) {
             MaintenanceRequest maintenanceRequest = new MaintenanceRequest();
             maintenanceRequest.setFacility(facility.get());
 
-            // 1. Pasamos el objeto con el nombre estándar
+            // We pass the empty object to be filled by the form
             model.addAttribute("maintenanceRequest", maintenanceRequest);
-            // 2. Pasamos el nombre para el banner
+            // We pass the name so the user knows what they are reporting (for example "Broken net in Tennis Court 1")
             model.addAttribute("facilityName", facility.get().getName());
-            // 3. IMPORTANTE: Pasamos el ID suelto para el input hidden del HTML
+            // We pass the ID separately to keep it in a hidden input field
             model.addAttribute("facilityId", facilityId);
 
             return "maintenance-request-form";
         } else {
+            // If the ID is wrong, go back to the main list
             return "redirect:/facilities";
         }
     }
 
-    // PROCESAR REPORTE (Sin cambios mayores, ya estaba bien)
+    /**
+     * Processes the submitted form.
+     * It saves the new report, links it to the logged-in user, and sends a confirmation email.
+     */
     @PostMapping("/add")
     public String addRequest(@ModelAttribute MaintenanceRequest maintenanceRequest,
                              @RequestParam("facilityId") Integer facilityId,
                              Authentication authentication) {
 
+        // Find the facility again
         Facility facility = facilityService.getFacilityById(facilityId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Facility ID"));
         maintenanceRequest.setFacility(facility);
@@ -95,6 +118,7 @@ public class MaintenanceRequestController {
         String userEmail = "";
         String userName = "User";
 
+        // If the user is logged in, we link this report to their account
         if (authentication != null && authentication.isAuthenticated()) {
             User user = userService.getUserByEmail(authentication.getName()).orElse(null);
             if (user != null) {
@@ -104,11 +128,14 @@ public class MaintenanceRequestController {
             }
         }
 
+        // Automatically set the date to now and status to "PENDING"
         maintenanceRequest.setReportDate(LocalDateTime.now());
         maintenanceRequest.setStatus("PENDING");
 
+        // Save to database
         maintenanceService.createRequest(maintenanceRequest);
 
+        // Send a confirmation email to the user if we have their address
         if (!userEmail.isEmpty()) {
             String subject = "Maintenance Request Received: " + facility.getName();
             String body = "Hello " + userName + ",\n\n" +
@@ -121,13 +148,20 @@ public class MaintenanceRequestController {
             emailService.sendEmail(userEmail, subject, body);
         }
 
+        // Redirect back to the facilities page so they can continue browsing
         return "redirect:/facilities";
     }
 
+    /**
+     * Updates the status of a request quickly.
+     * The new status comes directly from the URL.
+     */
     @PostMapping("/status/{id}/{newStatus}")
     public String updateStatusFromUrl(@PathVariable Integer id, @PathVariable String newStatus) {
+        // Convert format (e.g., "in-progress" -> "IN_PROGRESS") to match database standards
         String statusUpper = newStatus.replace("-", "_").toUpperCase();
         maintenanceService.updateRequestStatus(id, statusUpper);
+        // Refresh the list page
         return "redirect:/maintenance-requests";
     }
 }

@@ -11,19 +11,25 @@ import start.spring.io.backend.service.UserService;
 
 import java.time.LocalDateTime;
 
+/**
+ * This controller manages Penalties (punishments).
+ * Admins use this to record when a user breaks the rules, like missing a reservation.
+ */
 @Controller
 @RequestMapping("/penalties")
 public class PenaltyController {
 
     private final PenaltyService service;
-    private final UserService userService; // <--- NECESARIO para buscar al usuario
+    private final UserService userService;
 
     public PenaltyController(PenaltyService service, UserService userService) {
         this.service = service;
         this.userService = userService;
     }
 
-    // --- LISTADO (Opcional, el admin usa el Dashboard) ---
+    /**
+     * Shows a list of all penalties.
+     */
     @GetMapping
     public String listPenalties(Model model) {
         model.addAttribute("penalties", service.getAllPenalties());
@@ -31,37 +37,47 @@ public class PenaltyController {
         return "penalty-list";
     }
 
-    // --- AÑADIR PENALIZACIÓN MANUAL (CORREGIDO) ---
+    /**
+     * Adds a new penalty manually.
+     * This method receives the form data, finds the user by their ID,
+     * assigns the penalty to them, and saves it.
+     */
     @PostMapping("/add")
     public String addPenalty(@ModelAttribute("newPenalty") Penalty penalty,
                              @RequestParam("userId") Integer userId) { // <--- Recibimos el ID del formulario
 
-        // 1. Buscamos el usuario por ID
+        // Find the user in the database
         User user = userService.getUserById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid User ID: " + userId));
 
-        // 2. Asignamos el usuario a la penalización
+        // Link the penalty to this specific user
         penalty.setUser(user);
 
-        // 3. Si no se puso fecha, ponemos AHORA
+        // If the admin didn't pick a date, use now
         if (penalty.getDatehour() == null) {
             penalty.setDatehour(LocalDateTime.now());
         }
 
-        // 4. Guardamos
+        // Save to database
         service.createPenalty(penalty);
 
-        // 5. Redirigimos al Dashboard del Admin (no a /penalties)
+        // Redirect back to the Dashboard (not the penalty list)
         return "redirect:/reservations/manager";
     }
 
+    /**
+     * Deletes a penalty by its ID.
+     * Useful if the admin made a mistake.
+     */
     @GetMapping("/delete/{id}")
     public String deletePenalty(@PathVariable Integer id) {
         service.deletePenalty(id);
-        return "redirect:/reservations/manager"; // Redirigimos al dashboard
+        return "redirect:/reservations/manager"; // Redirect back to dashboard
     }
 
-    // Edición (Opcional)
+    /**
+     * Shows the form to edit an existing penalty.
+     */
     @GetMapping("/edit/{id}")
     public String editForm(@PathVariable Integer id, Model model) {
         Penalty penalty = service.getPenaltyById(id)
@@ -70,6 +86,9 @@ public class PenaltyController {
         return "penalty-edit";
     }
 
+    /**
+     * Saves the changes made to a penalty.
+     */
     @PostMapping("/edit/{id}")
     public String editPenalty(@PathVariable Integer id, @ModelAttribute("penalty") Penalty penalty) {
         service.updatePenalty(id, penalty);

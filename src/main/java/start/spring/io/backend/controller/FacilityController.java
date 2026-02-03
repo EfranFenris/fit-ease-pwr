@@ -14,6 +14,11 @@ import start.spring.io.backend.service.UserService;
 
 import java.util.List;
 
+/**
+ * This controller manages the Facilities page.
+ * It handles listing all the sports facilities (courts, fields) and allows
+ * the manager to change their status (Open/Closed).
+ */
 @Controller
 @RequestMapping("/facilities")
 public class FacilityController {
@@ -33,15 +38,17 @@ public class FacilityController {
         this.reservationService = reservationService;
     }
 
+    /**
+     * Displays the list of all facilities.
+     * It fetches data from the database, converts it into a "card" and sends it to the "facility-list.html" page.
+     */
     @GetMapping
     public String listFacilities(Model model, Authentication authentication) {
-        // Obtenemos todas las facilities y las transformamos al DTO para la vista
+        // We get all facilities and transform them into 'FacilityCardView' objects
+        // which are easier to display on the webpage.
         List<FacilityCardView> facilities = service.getAllFacilities().stream()
                 .map(this::toCardView)
                 .toList();
-
-        // Depuración rápida: Si esto imprime 0 en la consola, Hibernate no está encontrando datos
-        System.out.println("Facilities encontradas: " + facilities.size());
 
         model.addAttribute("facilityCards", facilities);
         model.addAttribute("currentPage", "facilities");
@@ -49,6 +56,11 @@ public class FacilityController {
         return "facility-list";
     }
 
+    /**
+     * Changes the status of a facility between "Available" and "Unavailable".
+     * If a facility is being closed, we also cancel any upcoming reservations
+     * to avoid conflicts.
+     */
     @PostMapping("/status/{id}/toggle")
     public String toggleStatus(@PathVariable Integer id) {
         service.getFacilityById(id).ifPresent(facility -> {
@@ -56,15 +68,15 @@ public class FacilityController {
                     || "Free".equalsIgnoreCase(facility.getStatus());
 
             if (isAvailable) {
-                // Si estaba disponible, la deshabilitamos
+                // If it was available, we close it now.
                 facility.setStatus("Unavailable");
                 service.updateFacility(id, facility);
 
-                // Cancelar reservas futuras y notificar (Lógica de negocio importante)
+                // Important Business Logic: Cancel future reservations and notify users.
                 reservationService.cancelReservationsForFacility(id, "Facility closed by Reservation Manager.");
 
             } else {
-                // Si estaba no disponible, la habilitamos
+                // If it was closed, we open it up again.
                 facility.setStatus("Available");
                 service.updateFacility(id, facility);
             }
@@ -73,11 +85,15 @@ public class FacilityController {
     }
 
     /**
-     * Convierte la entidad Facility en un objeto de vista (DTO) controlando la lógica visual.
+     * Helper method to convert a database 'Facility' object into a 'FacilityCardView'.
+     * This handles the visual logic, like choosing which image to show
+     * and deciding if the status label should be Green (Available), Red (Unavailable),
+     * or Orange (Maintenance).
      */
     private FacilityCardView toCardView(Facility facility) {
         String type = facility.getType() != null ? facility.getType().toLowerCase() : "";
 
+        // Choose a background image based on the sport type
         String imageUrl = "https://images.unsplash.com/photo-1471295253337-3ceaaedca402?auto=format&fit=crop&w=1000&q=80"; // Default
         if (type.contains("tennis")) {
             imageUrl = "https://images.unsplash.com/flagged/photo-1576972405668-2d020a01cbfa?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8dGVubmlzfGVufDB8fDB8fHww";
@@ -95,36 +111,34 @@ public class FacilityController {
 
         String location = "Sports Hub";
 
-        // --- 2. Lógica de Estado (Corrección Principal) ---
-
-        // Verificamos si hay mantenimiento activo
+        // Check if there is an active maintenance request for this facility
         boolean hasActiveMaintenance = maintenanceService.hasActiveRequests(facility.getFacilityId());
 
-        // Verificamos qué dice la base de datos sobre el estado
+        // Check what the database says about the status
         boolean isStatusAvailable = "Available".equalsIgnoreCase(facility.getStatus())
                 || "Free".equalsIgnoreCase(facility.getStatus());
 
-        // El estado real: Disponible solo si la BD dice OK y NO hay mantenimiento
+        // Real availability: It is only truly available if the DB says so AND there is no maintenance
         boolean actuallyAvailable = isStatusAvailable && !hasActiveMaintenance;
 
         String statusLabel;
         String statusClass;
 
         if (hasActiveMaintenance) {
-            // Prioridad 1: Si hay mantenimiento, se muestra mantenimiento
+            // If maintenance is active, show that regardless of anything else
             statusLabel = "Under Maintenance";
-            statusClass = "status-maintenance"; // Asegúrate de tener estilo CSS para esto (ej. color naranja)
+            statusClass = "status-maintenance"; // CSS class for orange color
         } else if (actuallyAvailable) {
-            // Prioridad 2: Si está realmente disponible
+            // If it is truly free
             statusLabel = "Available";
-            statusClass = "status-available";   // Color verde
+            statusClass = "status-available";   // CSS class for green color
         } else {
-            // Prioridad 3: No disponible por otra razón (ej. cerrado por manager)
+            // Closed by manager
             statusLabel = "Unavailable";
-            statusClass = "status-unavailable"; // Color rojo/gris
+            statusClass = "status-unavailable"; // CSS class for red/gray color
         }
 
-        // Devolvemos el DTO
+        // Return the DTO
         return new FacilityCardView(
                 facility,
                 imageUrl,

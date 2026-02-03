@@ -28,6 +28,14 @@ import start.spring.io.backend.service.PenaltyService;
 import start.spring.io.backend.service.ReservationService;
 import start.spring.io.backend.service.UserService;
 
+/**
+ * This is the main controller for the application.
+ * It handles the entire lifecycle of a Reservation:
+ * 1. Listing bookings for a user.
+ * 2. Creating new booking (with validation rules).
+ * 3. Editing or Canceling bookings.
+ * 4. The Manager Dashboard (Admin view).
+ */
 @Controller
 @RequestMapping("/reservations")
 public class ReservationController {
@@ -50,14 +58,21 @@ public class ReservationController {
         this.emailService = emailService;
     }
 
-    // --- LISTADO DE RESERVAS ---
+    /**
+     * LIST RESERVATIONS ("My Bookings")
+     * Displays the list of reservations for the currently logged-in user.
+     * It allows filtering between "Upcoming" and "Past" events.
+     */
     @GetMapping
     public String list(Model model, Authentication authentication, @RequestParam(value = "filter", defaultValue = "upcoming") String filter) {
+        // Find who is logged in
         Optional<User> user = getAuthenticatedUser(authentication);
         Integer userId = user.map(User::getUserId).orElse(null);
 
+        // Get their reservations from the database
         List<Reservation> reservations = userId == null ? Collections.emptyList() : service.getByUserId(userId);
 
+        // Convert the raw data into "Cards" for the HTML view and apply the filter (Past vs Upcoming)
         List<ReservationCardView> cards = reservations.stream()
                 .map(this::toCardView)
                 .filter(card -> matchesFilter(card, filter))
@@ -71,18 +86,28 @@ public class ReservationController {
         return "reservation-list";
     }
 
-    // --- NUEVA RESERVA ---
+    /**
+     * NEW RESERVATION FORM
+     * Shows the booking form for a specific facility.
+     */
     @GetMapping("/new/{facilityId}")
     public String newReservation(@PathVariable Integer facilityId, Model model) {
         Facility facility = facilityService.getFacilityById(facilityId)
                 .orElseThrow(() -> new IllegalArgumentException("Facility not found"));
+
+        // Pass the necessary info to the form
         model.addAttribute("facilityId", facilityId);
         model.addAttribute("facilityName", facility.getName());
         model.addAttribute("maxParticipants", facilityService.getCapacityForType(facility.getType()));
+
         return "reservation-booking";
     }
 
-    // --- REBOOK ---
+    /**
+     * REBOOK
+     * A convenience feature. It copies the details of an old reservation
+     * so the user can easily book the same thing again.
+     */
     @GetMapping("/rebook/{reservationId}")
     public String rebookReservation(@PathVariable Integer reservationId, Model model) {
         Reservation oldReservation = service.getById(reservationId)
@@ -90,7 +115,10 @@ public class ReservationController {
 
         Facility facility = oldReservation.getFacility(); // JPA Directo
 
+        // Calculate how long the previous game lasted
         long durationMinutes = java.time.Duration.between(oldReservation.getStartTime(), oldReservation.getEndTime()).toMinutes();
+
+        // Fill the form with the old values
         model.addAttribute("facilityId", facility.getFacilityId());
         model.addAttribute("facilityName", facility.getName());
         model.addAttribute("defaultParticipants", oldReservation.getParticipants());
@@ -98,10 +126,18 @@ public class ReservationController {
         model.addAttribute("defaultDuration", durationMinutes);
         model.addAttribute("defaultStartTime", oldReservation.getStartTime());
         model.addAttribute("maxParticipants", facilityService.getCapacityForType(facility.getType()));
+
         return "reservation-booking";
     }
 
-    // --- PROCESAR RESERVA ---
+    /**
+     * PROCESS BOOKING
+     * This is the logic center. It validates the user's request:
+     * - Is the facility open?
+     * - Is the time valid?
+     * - Is the slot already taken?
+     * If all is good, it saves the booking and sends an email.
+     */
     @PostMapping("/book")
     public String bookReservation(@RequestParam("facilityId") Integer facilityId,
                                   @RequestParam("bookingDate") String bookingDate,
@@ -118,21 +154,25 @@ public class ReservationController {
 
         LocalDateTime bookingStart = LocalDateTime.of(date, start);
 
-        // --- VALIDACIÓN DE 10 MINUTOS DE ANTELACIÓN ---
+        // RULE
+        // Users cannot book a slot that starts in 2 minutes. They need at least 10 min prior.
         if (bookingStart.isBefore(LocalDateTime.now().plusMinutes(10))) {
             return bookingError(model, facilityId, "You must book at least 10 minutes in advance.");
         }
-        // ----------------------------------------------
 
+        // End time must be after Start time
         if (!end.isAfter(start)) return bookingError(model, facilityId, "End time must be after the start time.");
 
+        // Check if facility is physically available
         Facility facility = facilityService.getFacilityById(facilityId).orElseThrow();
         if (!"Available".equalsIgnoreCase(facility.getStatus()) && !"Free".equalsIgnoreCase(facility.getStatus())) {
             return bookingError(model, facilityId, "Facility unavailable.");
         }
 
+        // Check capacity
         if (participants > facilityService.getCapacityForType(facility.getType())) return bookingError(model, facilityId, "Too many participants.");
 
+        // Create the object
         Reservation reservation = new Reservation();
         reservation.setParticipants(participants);
         reservation.setPurpose(purpose);
@@ -140,10 +180,11 @@ public class ReservationController {
         reservation.setStartTime(start);
         reservation.setEndTime(end);
 
-        Integer userId = 1; // Default fallback user
+        Integer userId = 1; // Default fallback user (if something goes wrong with auth)
         String userEmail = "";
         String userName = "User";
 
+        // Link to the real logged-in user
         if (authentication != null && authentication.isAuthenticated()) {
             User currentUser = userService.getUserByEmail(authentication.getName()).orElse(null);
             if(currentUser != null) {
@@ -153,12 +194,15 @@ public class ReservationController {
             }
         }
 
+        // Is the facility already booked by someone else?
         if (service.hasOverlap(facilityId, date, start, end)) return bookingError(model, facilityId, "Time slot booked.");
+        // Does this specific user already have a booking at this time? (Double booking)
         if (service.hasUserOverlap(userId, date, start, end)) return bookingError(model, facilityId, "You have another booking.");
 
-        // Pasamos los IDs al servicio para que él monte las relaciones JPA
+        // Save to DB
         service.create(reservation, userId, facilityId);
 
+        // Send confirmation email
         if (!userEmail.isEmpty()) {
             String subject = "Booking Confirmed: " + facility.getName();
             String body = "Hello " + userName + ",\n\nYour booking for " + facility.getName() + " on " + date + " is confirmed.\n\nFitEasePWR Team";
@@ -168,11 +212,14 @@ public class ReservationController {
         return "redirect:/facilities";
     }
 
-    // --- EDICIÓN ---
+    /**
+     * EDIT FORM
+     * Shows the form to modify an existing reservation.
+     */
     @GetMapping("/edit/{id}")
     public String editForm(@PathVariable Integer id, Model model) {
         Reservation r = service.getById(id).orElseThrow();
-        Facility facility = r.getFacility(); // JPA Directo
+        Facility facility = r.getFacility();
         long durationMinutes = java.time.Duration.between(r.getStartTime(), r.getEndTime()).toMinutes();
 
         model.addAttribute("facilityId", facility.getFacilityId());
@@ -188,6 +235,9 @@ public class ReservationController {
         return "reservation-booking";
     }
 
+    /**
+     * Process the update of a reservation.
+     */
     @PostMapping("/edit/{id}")
     public String updateReservation(@PathVariable Integer id,
                                     @RequestParam("bookingDate") String bookingDate,
@@ -198,6 +248,7 @@ public class ReservationController {
         LocalDate date = LocalDate.parse(bookingDate);
         LocalTime start = LocalTime.parse(startTime);
         LocalTime end = LocalTime.parse(endTime);
+
         if (!end.isAfter(start)) return "redirect:/reservations";
 
         Reservation reservation = service.getById(id).orElseThrow();
@@ -210,22 +261,29 @@ public class ReservationController {
         return "redirect:/reservations";
     }
 
-    // --- DELETE / PENALTY ---
+    /**
+     * CANCEL RESERVATION
+     * If the user cancels within 24 hours of the game, we apply a penalty.
+     */
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Integer id) {
         Optional<Reservation> reservationOpt = service.getById(id);
         if (reservationOpt.isPresent()) {
             Reservation r = reservationOpt.get();
             LocalDateTime now = LocalDateTime.now();
+
+            // If the game is in the future AND it is less than 24 hours away
             if (r.getDate().isAfter(now) && r.getDate().isBefore(now.plusHours(24))) {
                 User user = r.getUser();
                 if (user != null) {
+                    // Create a penalty record
                     Penalty penalty = new Penalty();
                     penalty.setUser(user);
                     penalty.setDescription("Late cancellation for reservation ID " + id);
                     penalty.setDatehour(now);
                     penaltyService.createPenalty(penalty);
 
+                    // Notify user
                     emailService.sendEmail(user.getEmail(), "Penalty Applied", "You have been penalized for late cancellation.");
                 }
             }
@@ -234,49 +292,56 @@ public class ReservationController {
         return "redirect:/reservations";
     }
 
-    // --- MANAGER ---
+    /**
+     * MANAGER DASHBOARD
+     * The special view for Admins to see today's agenda and manage penalties.
+     */
     @GetMapping("/manager")
     public String managerDashboard(Model model) {
         LocalDateTime start = LocalDate.now().atStartOfDay();
         LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
+
+        // Get only today's reservations
         List<ReservationCardView> cards = service.getReservationsByDateRange(start, end).stream().map(this::toCardView).toList();
 
         model.addAttribute("todaysReservations", cards);
         model.addAttribute("penalties", penaltyService.getAllPenalties());
 
-        // --- ESTO ES LO QUE TE FALTABA ---
+        // Prepare data for the modals (Add Penalty, User List)
         model.addAttribute("newPenalty", new Penalty());
         model.addAttribute("users", userService.getUsersByRole("user"));
         model.addAttribute("currentPage", "manager");
         return "admin-reservations";
     }
 
+    /**
+     * MARK NO-SHOW
+     * Admin clicks this if a user didn't turn up for their match.
+     */
     @PostMapping("/admin/no-show/{id}")
     public String markNoShow(@PathVariable Integer id) {
         service.getById(id).ifPresent(res -> {
 
-            // --- VALIDACIÓN 1: TIEMPO (10 minutos de cortesía) ---
-            // La hora actual debe ser POSTERIOR a (Hora Inicio Reserva + 10 min)
-            // Ejemplo: Reserva 10:00. Corte 10:10. Si son las 10:05, salimos.
+            // We give a 10-minute period to show up.
+            // If the reservation started at 10:00, the admin cannot mark "No Show" until 10:11.
             LocalDateTime cutOffTime = res.getDate().plusMinutes(10);
 
             if (LocalDateTime.now().isBefore(cutOffTime)) {
-                return; // Demasiado pronto, no hacemos nada.
+                return; // Too early, do nothing.
             }
 
             User user = res.getUser();
             if (user != null) {
-                // Generamos una descripción única
                 String description = "No-Show: " + res.getDate();
 
-                // --- VALIDACIÓN 2: DUPLICADOS ---
-                // Solo creamos la penalización si NO existe ya una igual
+                // Avoid punishing the user twice for the same reservation.
                 if (!penaltyService.existsPenalty(user, description)) {
                     Penalty penalty = new Penalty();
                     penalty.setUser(user);
                     penalty.setDescription(description);
                     penalty.setDatehour(LocalDateTime.now());
                     penaltyService.createPenalty(penalty);
+
                     emailService.sendEmail(user.getEmail(), "Penalty Applied", "You missed your reservation.");
                 }
             }
@@ -284,7 +349,8 @@ public class ReservationController {
         return "redirect:/reservations/manager";
     }
 
-    // --- HELPERS ---
+    // --- HELPER METHODS ---
+
     private Optional<User> getAuthenticatedUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) return Optional.empty();
         return userService.getUserByEmail(authentication.getName());
@@ -312,6 +378,9 @@ public class ReservationController {
         return new ReservationCardView(reservation, facilityName, type, "Sports Hub", imageUrl, statusLabel, statusClass, start, reservation.getDate().with(reservation.getEndTime()), reservation.getParticipants(), reservation.getPurpose(), incursPenalty);
     }
 
+    /**
+     * Returns the booking page again, but with an error message.
+     */
     private String bookingError(Model model, Integer facilityId, String message) {
         String facilityName = facilityService.getFacilityById(facilityId).map(Facility::getName).orElse("Facility");
         model.addAttribute("facilityId", facilityId);
