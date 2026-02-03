@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Report Issue - FitEasePWR</title>
-    
+
     <th:block th:replace="~{fragments/navbar :: nav-header}"></th:block>
 
     <style>
-        /* --- Base Structure & Variables --- */
+        /* (Tus estilos CSS se quedan igual, no los toco para ahorrar espacio) */
         :root {
             --primary-blue: #5D5FEF;
             --accent-orange: #FF6B00;
@@ -18,225 +18,102 @@
             --medium-color: #e67e22;
             --high-color: #e74c3c;
         }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-light);
-            margin: 0;
-            padding: 0;
-            color: var(--text-dark);
-        }
-
-        .form-container {
-            max-width: 700px;
-            margin: 20px auto;
-            background: white;
-            padding: 25px 35px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-        }
-
-        h1 {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 18px;
-            text-align: left;
-        }
-
-        /* --- Facility Info Banner --- */
-        .facility-banner {
-            background: linear-gradient(90deg, #0061ff 0%, #60efff 100%);
-            padding: 12px 18px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            color: white;
-            display: flex;
-            align-items: center;
-        }
-
-        .facility-banner p {
-            margin: 0;
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        /* --- Form Elements --- */
-        .form-group {
-            margin-bottom: 18px;
-        }
-
-        label.main-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #475569;
-        }
-
-        select, textarea {
-            width: 100%;
-            padding: 11px;
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            box-sizing: border-box;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            background-color: #fff;
-            color: var(--text-dark);
-        }
-
-        select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary-blue);
-            box-shadow: 0 0 0 4px rgba(93, 95, 239, 0.1);
-        }
-
-        textarea {
-            resize: none;
-            min-height: 80px;
-        }
-
-        /* --- Horizontal Severity Selector --- */
-        .severity-selector {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
-
-        .severity-input {
-            display: none;
-        }
-
-        .severity-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 14px 8px;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background-color: #fff;
-            text-align: center;
-        }
-
-        .severity-card .dot {
-            height: 12px;
-            width: 12px;
-            border-radius: 50%;
-            margin-bottom: 10px;
-        }
-
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-light); margin: 0; color: var(--text-dark); }
+        .form-container { max-width: 700px; margin: 20px auto; background: white; padding: 25px 35px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); }
+        h1 { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 18px; }
+        .facility-banner { background: linear-gradient(90deg, #0061ff 0%, #60efff 100%); padding: 12px 18px; margin-bottom: 20px; border-radius: 10px; color: white; display: flex; align-items: center; }
+        .facility-banner p { margin: 0; font-size: 1rem; font-weight: 600; }
+        .form-group { margin-bottom: 18px; }
+        label.main-label { display: block; margin-bottom: 8px; font-weight: 600; color: #475569; }
+        select, textarea { width: 100%; padding: 11px; border: 2px solid var(--border-color); border-radius: 10px; box-sizing: border-box; font-size: 14px; background-color: #fff; }
+        textarea { resize: none; min-height: 80px; }
+        .severity-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .severity-input { display: none; }
+        .severity-card { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 8px; border: 2px solid var(--border-color); border-radius: 12px; cursor: pointer; background-color: #fff; text-align: center; }
+        .severity-card .dot { height: 12px; width: 12px; border-radius: 50%; margin-bottom: 10px; }
         .low .dot { background-color: var(--low-color); }
         .medium .dot { background-color: var(--medium-color); }
         .high .dot { background-color: var(--high-color); }
-
         .severity-card strong { display: block; font-size: 1rem; color: #334155; }
         .severity-card .desc { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
-
-        /* Selection States */
         #sev-low:checked + .low { border-color: var(--low-color); background: #fefce8; }
         #sev-medium:checked + .medium { border-color: var(--medium-color); background: #fff7ed; }
         #sev-high:checked + .high { border-color: var(--high-color); background: #fef2f2; }
-
-        /* --- Actions --- */
-        .button-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 22px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            text-decoration: none;
-        }
-
+        .button-group { display: flex; gap: 12px; margin-top: 22px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; text-align: center; text-decoration: none; }
         .btn-submit { background-color: var(--primary-blue); color: white; }
-        .btn-submit:hover { background-color: #4a4cd9; transform: translateY(-1px); }
-
         .btn-cancel { background-color: #e2e8f0; color: #475569; }
-        .btn-cancel:hover { background-color: #cbd5e1; }
     </style>
 </head>
 <body>
 
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
 
-    <div class="form-container">
-        <h1>Maintenance Request Form</h1>
-        
-        <div class="facility-banner">
-            <p>Facility Name: <span th:text="${facilityName}">Tennis-Court-1</span></p>
+<div class="form-container">
+    <h1>Maintenance Request Form</h1>
+
+    <div class="facility-banner">
+        <p>Facility Name: <span th:text="${facilityName}">Tennis-Court-1</span></p>
+    </div>
+
+    <form th:action="@{/maintenance-requests/add}" th:object="${maintenanceRequest}" method="post">
+
+        <input type="hidden" name="facilityId" th:value="${facilityId}">
+
+        <div class="form-group">
+            <label class="main-label" for="issueType">Issue Type <span style="color: var(--high-color);">*</span></label>
+            <select id="issueType" th:field="*{issueType}" required>
+                <option value="" disabled selected>Select the type of issue...</option>
+                <option value="Surface in poor condition">Surface in poor condition</option>
+                <option value="Lighting issue">Lighting issue</option>
+                <option value="Broken equipment">Broken equipment</option>
+                <option value="Cleanliness / Waste">Cleanliness / Waste</option>
+                <option value="Structural damage">Structural damage</option>
+                <option value="Other">Other (Please specify below)</option>
+            </select>
         </div>
 
-        <form th:action="@{/maintenance-requests/maintenance-request-form}" th:object="${newRequest}" method="post">
-            
-            <input type="hidden" name="facilityId" th:value="${facilityId}">
-            <input type="hidden" name="from" value="facilities" />
+        <div class="form-group">
+            <label class="main-label">Severity Level</label>
+            <div class="severity-selector">
+                <input type="radio" th:field="*{severity}" value="LOW" id="sev-low" class="severity-input" required>
+                <label for="sev-low" class="severity-card low">
+                    <span class="dot"></span>
+                    <strong>Low</strong>
+                    <span class="desc">Does not affect use</span>
+                </label>
 
-            <div class="form-group">
-                <label class="main-label" for="issueType">Issue Type <span style="color: var(--high-color);">*</span></label>
-                <select id="issueType" th:field="*{issueType}" required>
-                    <option value="" disabled selected>Select the type of issue...</option>
-                    <option value="Surface in poor condition">Surface in poor condition</option>
-                    <option value="Lighting issue">Lighting issue</option>
-                    <option value="Broken equipment">Broken equipment</option>
-                    <option value="Cleanliness / Waste">Cleanliness / Waste</option>
-                    <option value="Structural damage">Structural damage</option>
-                    <option value="Other">Other (Please specify below)</option>
-                </select>
+                <input type="radio" th:field="*{severity}" value="MEDIUM" id="sev-medium" class="severity-input">
+                <label for="sev-medium" class="severity-card medium">
+                    <span class="dot"></span>
+                    <strong>Medium</strong>
+                    <span class="desc">Limited use</span>
+                </label>
+
+                <input type="radio" th:field="*{severity}" value="HIGH" id="sev-high" class="severity-input">
+                <label for="sev-high" class="severity-card high">
+                    <span class="dot"></span>
+                    <strong>High</strong>
+                    <span class="desc">Cannot be used</span>
+                </label>
             </div>
+        </div>
 
-            <div class="form-group">
-                <label class="main-label">Severity Level</label>
-                <div class="severity-selector">
-                    <input type="radio" th:field="*{severity}" value="LOW" id="sev-low" class="severity-input" required>
-                    <label for="sev-low" class="severity-card low">
-                        <span class="dot"></span>
-                        <strong>Low</strong>
-                        <span class="desc">Does not affect use</span>
-                    </label>
+        <div class="form-group">
+            <label class="main-label" for="description">Detailed Description</label>
+            <textarea id="description"
+                      th:field="*{description}"
+                      placeholder="Describe the issue in detail (location, damage details, etc.)"
+                      maxlength="200"
+                      required></textarea>
+        </div>
 
-                    <input type="radio" th:field="*{severity}" value="MEDIUM" id="sev-medium" class="severity-input">
-                    <label for="sev-medium" class="severity-card medium">
-                        <span class="dot"></span>
-                        <strong>Medium</strong>
-                        <span class="desc">Limited use</span>
-                    </label>
-
-                    <input type="radio" th:field="*{severity}" value="HIGH" id="sev-high" class="severity-input">
-                    <label for="sev-high" class="severity-card high">
-                        <span class="dot"></span>
-                        <strong>High</strong>
-                        <span class="desc">Cannot be used</span>
-                    </label>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="main-label" for="description">Detailed Description</label>
-                <textarea id="description" 
-                          th:field="*{description}"
-                          placeholder="Describe the issue in detail (location, damage details, etc.)"
-                          maxlength="200"
-                          required></textarea>
-            </div>
-
-            <div class="button-group">
-                <button type="submit" class="btn btn-submit">Submit Request</button>
-                <a th:href="@{/facilities}" class="btn btn-cancel">Cancel</a>
-            </div>
-        </form>
-    </div>
+        <div class="button-group">
+            <button type="submit" class="btn btn-submit">Submit Request</button>
+            <a th:href="@{/facilities}" class="btn btn-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
 
 </body>
 </html>

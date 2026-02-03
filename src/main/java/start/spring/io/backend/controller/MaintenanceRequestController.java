@@ -35,17 +35,15 @@ public class MaintenanceRequestController {
         this.emailService = emailService;
     }
 
+    // LISTADO (Sin cambios)
     @GetMapping
     public String listRequests(Model model, @RequestParam(value = "filter", required = false) String filter) {
-        // 1. Obtener todas las requests para calcular estadísticas
         List<MaintenanceRequest> allRequests = maintenanceService.getAllRequests();
 
-        // 2. Calcular estadísticas (Pending, In Progress, Resolved)
         long pendingCount = allRequests.stream().filter(r -> "PENDING".equalsIgnoreCase(r.getStatus())).count();
         long inprogressCount = allRequests.stream().filter(r -> "IN_PROGRESS".equalsIgnoreCase(r.getStatus())).count();
         long resolvedCount = allRequests.stream().filter(r -> "RESOLVED".equalsIgnoreCase(r.getStatus())).count();
 
-        // 3. Filtrar la lista principal si es necesario
         List<MaintenanceRequest> displayedRequests;
         if (filter != null && !filter.isEmpty()) {
             displayedRequests = maintenanceService.getFilteredRequests(filter);
@@ -53,33 +51,38 @@ public class MaintenanceRequestController {
             displayedRequests = allRequests;
         }
 
-        // 4. Pasar todo al modelo
         model.addAttribute("requests", displayedRequests);
         model.addAttribute("pendingCount", pendingCount);
         model.addAttribute("inprogressCount", inprogressCount);
         model.addAttribute("resolvedCount", resolvedCount);
-
-        model.addAttribute("selectedStatus", filter); // Para marcar el botón activo en el HTML
+        model.addAttribute("selectedStatus", filter);
         model.addAttribute("currentPage", "maintenance");
 
-        // CORRECCIÓN: El nombre debe coincidir con tu archivo HTML (maintenance-request-list.html)
         return "maintenance-request-list";
     }
 
+    // --- FORMULARIO DE REPORTE (CORREGIDO) ---
     @GetMapping("/maintenance-request-form/{facilityId}")
     public String showRequestForm(@PathVariable Integer facilityId, Model model) {
         Optional<Facility> facility = facilityService.getFacilityById(facilityId);
         if (facility.isPresent()) {
             MaintenanceRequest maintenanceRequest = new MaintenanceRequest();
             maintenanceRequest.setFacility(facility.get());
+
+            // 1. Pasamos el objeto con el nombre estándar
             model.addAttribute("maintenanceRequest", maintenanceRequest);
+            // 2. Pasamos el nombre para el banner
             model.addAttribute("facilityName", facility.get().getName());
+            // 3. IMPORTANTE: Pasamos el ID suelto para el input hidden del HTML
+            model.addAttribute("facilityId", facilityId);
+
             return "maintenance-request-form";
         } else {
             return "redirect:/facilities";
         }
     }
 
+    // PROCESAR REPORTE (Sin cambios mayores, ya estaba bien)
     @PostMapping("/add")
     public String addRequest(@ModelAttribute MaintenanceRequest maintenanceRequest,
                              @RequestParam("facilityId") Integer facilityId,
@@ -114,18 +117,15 @@ public class MaintenanceRequestController {
                     "Our maintenance team will review it shortly.\n" +
                     "Thank you for helping us keep FitEasePWR in top shape!\n\n" +
                     "Best regards,\nFitEasePWR Team";
-
+            // Descomenta si tienes el email service activo
             emailService.sendEmail(userEmail, subject, body);
         }
 
         return "redirect:/facilities";
     }
 
-    // CORRECCIÓN: Método genérico para atender las URLs del HTML
-    // HTML llama a: /maintenance-requests/status/{id}/in-progress
     @PostMapping("/status/{id}/{newStatus}")
     public String updateStatusFromUrl(@PathVariable Integer id, @PathVariable String newStatus) {
-        // Convertimos "in-progress" -> "IN_PROGRESS"
         String statusUpper = newStatus.replace("-", "_").toUpperCase();
         maintenanceService.updateRequestStatus(id, statusUpper);
         return "redirect:/maintenance-requests";
