@@ -62,6 +62,20 @@ public class MaintenanceRequestController {
             displayedRequests = maintenanceService.getFilteredRequests(filter);
         } else {
             displayedRequests = allRequests;
+
+            // Define priority order: HIGH (1) > MEDIUM (2) > LOW (3)
+            java.util.Map<String, Integer> priorityMap = java.util.Map.of(
+                    "HIGH", 1,
+                    "MEDIUM", 2,
+                    "LOW", 3
+            );
+
+            // Sort the list based on severity before sending to the model
+            displayedRequests.sort((r1, r2) -> {
+                Integer p1 = priorityMap.getOrDefault(r1.getSeverity() != null ? r1.getSeverity().toUpperCase() : "", 4);
+                Integer p2 = priorityMap.getOrDefault(r2.getSeverity() != null ? r2.getSeverity().toUpperCase() : "", 4);
+                return p1.compareTo(p2);
+            });
         }
 
         // Pass all the data to the HTML view
