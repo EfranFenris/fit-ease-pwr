@@ -5,6 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.util.Locale;
+
 /**
  * This is the Main Class of the application.
  *
@@ -26,6 +28,7 @@ public class BackendApplication {
      * It launches the Spring Boot server (Tomcat) so your website becomes accessible.
      */
     public static void main(String[] args) {
+        Locale.setDefault(Locale.ENGLISH);
         SpringApplication.run(BackendApplication.class, args);
     }
 
