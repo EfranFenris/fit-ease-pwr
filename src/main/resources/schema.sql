@@ -1,11 +1,10 @@
--- Borrar tablas si existen (orden inverso a las FK)
 DROP TABLE IF EXISTS penalty CASCADE;
 DROP TABLE IF EXISTS maintenance_request CASCADE;
 DROP TABLE IF EXISTS reservation CASCADE;
 DROP TABLE IF EXISTS facility CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
-CREATE TABLE users ( -- in PostgreSQL, 'user' is a reserved keyword
+CREATE TABLE users (
   userid SERIAL PRIMARY KEY,
   name VARCHAR(150) NOT NULL,
   email VARCHAR(254) UNIQUE NOT NULL,

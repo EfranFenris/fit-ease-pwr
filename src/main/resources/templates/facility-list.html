@@ -14,10 +14,9 @@
             --bg: #f5f7fb;
             --card-bg: #ffffff;
 
-            /* COLORES DE ESTADO ACTUALIZADOS */
-            --available: #22c55e;   /* Verde */
-            --unavailable: #ef4444; /* Rojo (Antes gris) */
-            --maintenance: #f97316; /* Naranja (Nuevo) */
+            --available: #22c55e;   /* Green */
+            --unavailable: #ef4444; /* Red */
+            --maintenance: #f97316; /* Orange */
         }
 
         * {
@@ -62,7 +61,7 @@
             background-position: center;
         }
 
-        /* ESTILOS DE ETIQUETAS (BADGES) */
+        /* TAGS STYLES */
         .status {
             position: absolute;
             top: 12px;
@@ -75,17 +74,17 @@
             font-weight: 600;
         }
 
-        /* Rojo para Unavailable */
+        /* Red for Unavailable */
         .status-unavailable {
             background: var(--unavailable) !important;
         }
 
-        /* Naranja para Maintenance */
+        /* Orange for Maintenance */
         .status-maintenance {
             background: var(--maintenance) !important;
         }
 
-        /* Verde explícito (opcional, ya que es el default) */
+        /* Green default */
         .status-available {
             background: var(--available) !important;
         }
@@ -122,7 +121,7 @@
             gap: 8px;
         }
 
-        /* ESTILOS DE BOTONES */
+        /* Buttons styles */
         .btn {
             text-decoration: none;
             text-align: center;
@@ -130,7 +129,7 @@
             border-radius: 10px;
             font-weight: 600;
             font-size: 14px;
-            border: none; /* <--- ESTO QUITA EL BORDE NEGRO */
+            border: none;
             cursor: pointer;
             display: inline-block;
             width: 100%;
@@ -144,11 +143,10 @@
             background: var(--primary-dark);
         }
 
-        /* Nuevo estilo para botón rojo (Set Unavailable) */
         .btn-danger {
             background: #fee2e2;
             color: #ef4444;
-            border: 1px solid #fecaca; /* Borde rojo suave opcional, o pon 'none' */
+            border: 1px solid #fecaca;
         }
         .btn-danger:hover {
             background: #fecaca;

@@ -6,6 +6,10 @@ import start.spring.io.backend.repository.PenaltyRepository;
 
 import java.time.LocalDateTime;
 
+/**
+ * This is an automated service.
+ * It uses the @Scheduled annotation to run tasks automatically in the background.
+ */
 @Service
 public class PenaltyScheduler {
 
@@ -15,8 +19,10 @@ public class PenaltyScheduler {
         this.penaltyRepository = penaltyRepository;
     }
 
-    // Se ejecuta todos los días a las 3:00 AM
-    // Cron format: seg min hora dia mes dia_semana
+    /**
+     * This method runs automatically every day at 3:00 AM.
+     * It deletes penalties that are older than 3 months to be fair to users.
+     */
     @Scheduled(cron = "0 0 3 * * *")
     public void removeExpiredPenalties() {
         LocalDateTime threeMonthsAgo = LocalDateTime.now().minusMonths(3);

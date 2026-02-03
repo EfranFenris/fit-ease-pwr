@@ -8,11 +8,15 @@ import start.spring.io.backend.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * This service handles User Account Management.
+ * Its makes sure passwords are never saved as plain text but are always encrypted.
+ */
 @Service
 public class UserService {
 
     private final UserRepository repository;
-    private final PasswordEncoder passwordEncoder; // Inyectamos esto
+    private final PasswordEncoder passwordEncoder; // We inject the encryption tool
 
     public UserService(UserRepository repository, PasswordEncoder passwordEncoder) {
         this.repository = repository;
@@ -23,27 +27,35 @@ public class UserService {
     public Optional<User> getUserById(Integer id) { return repository.findById(id); }
     public Optional<User> getUserByEmail(String email) { return repository.findByEmail(email); }
 
+    /**
+     * Creates a new user (Signup).
+     * We immediately encrypt the password using 'passwordEncoder.encode()'
+     * before sending it to the database.
+     */
     public User createUser(User request) {
         request.setUserId(null);
-        // Encriptar contraseña al crear
+        // Encrypt password before saving
         request.setPassword(passwordEncoder.encode(request.getPassword()));
         return repository.save(request);
     }
 
+    /**
+     * Updates user details (Profile Edit).
+     * If the user leaves the password field empty, we keep their old password.
+     * If the user types a new password, we encrypt it and update it.
+     */
     public Optional<User> updateUser(Integer id, User userDetails) {
         return repository.findById(id).map(existingUser -> {
             existingUser.setName(userDetails.getName());
             existingUser.setEmail(userDetails.getEmail());
-            existingUser.setRole(userDetails.getRole());
 
-            // LÓGICA IMPORTANTE: Reset de contraseña
-            // Solo cambiamos la contraseña si el campo NO está vacío.
-            // Así, si el admin edita el nombre pero deja la pass vacía, no se rompe nada.
+            // Only change password if the user actually typed something new
             if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
                 existingUser.setPassword(passwordEncoder.encode(userDetails.getPassword()));
             }
-            // Dentro de updateUser...
-            if (userDetails.getRole() != null) { // <--- AÑADE ESTE IF
+
+            // Only update the role if a new one is provided
+            if (userDetails.getRole() != null) {
                 existingUser.setRole(userDetails.getRole());
             }
 
@@ -51,7 +63,9 @@ public class UserService {
         });
     }
 
-    // --- NUEVO MÉTODO: Obtener usuarios por rol ---
+    /**
+     * Helper to find all users by their role (example: all Admins)
+     */
     public List<User> getUsersByRole(String role) {
         return repository.findByRole(role);
     }

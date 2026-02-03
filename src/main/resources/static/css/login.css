@@ -6,7 +6,7 @@
     --text-main: #2D3748;
     --text-light: #718096;
     --white: #ffffff;
-    --border-radius: 16px; /* Bordes muy redondos como en tu UI */
+    --border-radius: 16px;
 }
 
 * {
