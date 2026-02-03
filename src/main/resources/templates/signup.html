@@ -22,7 +22,7 @@
                 <i class="fa-solid fa-circle-exclamation"></i> <span th:text="${error}"></span>
             </div>
 
-            <form th:action="@{/signup}" method="post" id="signupForm">
+            <form th:action="@{/signup}" method="post" id="signupForm" novalidate>
                 <div class="form-group">
                     <label for="name">Full Name</label>
                     <div class="input-wrapper">
