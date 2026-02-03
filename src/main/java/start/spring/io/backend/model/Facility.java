@@ -5,9 +5,14 @@ import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class represents a physical space, like "Tennis Court 1" or "Main Soccer Field".
+ * It stores info about what type of sport it is and if it's currently open (Available) or closed.
+ */
 @Entity
 @Table(name = "facility")
 public class Facility {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "facilityid")
@@ -17,16 +22,21 @@ public class Facility {
     private String name;
 
     @Column(name = "type", nullable = false)
-    private String type;
+    private String type; // example: "Tennis", "Padel", "Football"
 
     @Column(name = "status", nullable = false)
-    private String status;
+    private String status; // example: "Available", "Unavailable"
 
-    // --- RELACIONES NUEVAS (ESTO ES LO QUE TE FALTA) ---
+    /**
+     * A list of all bookings ever made for this specific court.
+     */
     @OneToMany(mappedBy = "facility", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Reservation> reservations = new ArrayList<>();
 
+    /**
+     * A list of all broken equipment reports for this court.
+     */
     @OneToMany(mappedBy = "facility", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<MaintenanceRequest> maintenanceRequests = new ArrayList<>();
@@ -38,6 +48,8 @@ public class Facility {
         this.type = type;
         this.status = status;
     }
+
+    // Getters and Setters
 
     public Integer getFacilityId() { return facilityId; }
     public void setFacilityId(Integer facilityId) { this.facilityId = facilityId; }
