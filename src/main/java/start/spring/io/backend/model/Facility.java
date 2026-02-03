@@ -1,13 +1,11 @@
 package start.spring.io.backend.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
-@Entity  // This tells JPA that this class is a database entity.
+@Entity
 @Table(name = "facility")
 public class Facility {
     @Id
@@ -24,11 +22,16 @@ public class Facility {
     @Column(name = "status", nullable = false)
     private String status;
 
-    @Column(name = "status_reason")
-    private String statusReason;
+    // --- RELACIONES NUEVAS (ESTO ES LO QUE TE FALTA) ---
+    @OneToMany(mappedBy = "facility", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Reservation> reservations = new ArrayList<>();
 
-    public Facility() {
-    }
+    @OneToMany(mappedBy = "facility", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<MaintenanceRequest> maintenanceRequests = new ArrayList<>();
+
+    public Facility() {}
 
     public Facility(String name, String type, String status) {
         this.name = name;
@@ -36,44 +39,15 @@ public class Facility {
         this.status = status;
     }
 
-    public Integer getFacilityId() {
-        return facilityId;
-    }
+    public Integer getFacilityId() { return facilityId; }
+    public void setFacilityId(Integer facilityId) { this.facilityId = facilityId; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public void setFacilityId(Integer facilityId) {
-        this.facilityId = facilityId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getStatusReason() {
-        return statusReason;
-    }
-
-    public void setStatusReason(String statusReason) {
-        this.statusReason = statusReason;
-    }
+    public List<Reservation> getReservations() { return reservations; }
+    public List<MaintenanceRequest> getMaintenanceRequests() { return maintenanceRequests; }
 }
-

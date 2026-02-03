@@ -7,8 +7,8 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; <--- YA NO SE NECESITA AQUÍ
+import org.springframework.security.crypto.password.PasswordEncoder; // Solo la interfaz
 import org.springframework.security.web.SecurityFilterChain;
 
 import start.spring.io.backend.service.CustomUserDetailsService;
@@ -19,79 +19,65 @@ import start.spring.io.backend.service.CustomUserDetailsService;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+    private final AuthenticationHandler authenticationHandler;
+    private final PasswordEncoder passwordEncoder; // <--- 1. NUEVA VARIABLE
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService) {
+    // 2. AÑADIMOS passwordEncoder AL CONSTRUCTOR
+    public SecurityConfig(CustomUserDetailsService userDetailsService,
+                          AuthenticationHandler authenticationHandler,
+                          PasswordEncoder passwordEncoder) {
         this.userDetailsService = userDetailsService;
+        this.authenticationHandler = authenticationHandler;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
+        // 3. USAMOS LA VARIABLE INYECTADA, NO EL MÉTODO
+        provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    // 4. ELIMINAMOS EL MÉTODO @Bean passwordEncoder() DE AQUÍ
+    // (Ya lo movimos a ApplicationConfig.java)
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .authenticationProvider(authenticationProvider())
-            // 1. Configure authorization rules (from specific to general)
-            .authorizeHttpRequests(auth -> auth
-                    // 1. Rutas públicas (Static resources, login, etc.)
-                    .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**").permitAll()
+                .authenticationProvider(authenticationProvider())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**").permitAll()
 
-                    // 2. Rutas básicas para usuarios autenticados
-                    .requestMatchers("/facilities/**").authenticated()
-                    .requestMatchers("/reservations/**").authenticated()
+                        .requestMatchers("/facilities/**").hasAnyRole("user", "admin")
+                        .requestMatchers("/calendar/**").authenticated()
+                        .requestMatchers("/reservations/manager/**").hasRole("admin")
+                        .requestMatchers("/reservations/**").hasAnyRole("user", "admin")
 
-                    // 3. LOGICA DE MANTENIMIENTO (El orden aquí es CRÍTICO)
+                        .requestMatchers("/maintenance-requests/maintenance-request-form/**", "/maintenance-requests/add").hasAnyRole("user", "admin")
+                        .requestMatchers("/maintenance-requests/**").hasAnyRole("maintenance", "admin")
 
-                    // A) PRIMERO: Permitir el formulario de reporte a CUALQUIER usuario autenticado (Estudiantes/Profesores)
-                    // Cubrimos tanto el GET (ver formulario) como el POST (enviar formulario)
-                    .requestMatchers(
-                            "/maintenance-requests/maintenance-request-form/**",
-                            "/maintenance-requests/maintenance-request-form"
-                    ).authenticated()
+                        .requestMatchers("/users/**").hasRole("admin")
+                        .requestMatchers("/admin/**").hasRole("admin")
+                        .requestMatchers("/profile/**").authenticated()
 
-                    // B) SEGUNDO: Bloquear TODO lo demás de mantenimiento (Lista, Editar, Cambiar estado)
-                    // Solo pueden entrar Maintenance Staff o Admin.
-                    // Esto protege la url "/maintenance-requests" (tu lista/dashboard)
-                    .requestMatchers("/maintenance-requests/**").hasAnyRole("maintenance", "admin")
-
-                    // 4. Rutas de administración
-                    .requestMatchers("/users/**").hasRole("admin")
-                    .requestMatchers("/admin/**").hasRole("admin")
-
-                    // 5. El resto requiere autenticación
-                    .anyRequest().authenticated()
-            )
-
-            // 2. Configure form login
-            .formLogin(form -> form
-                .loginPage("/login") // Custom login page at this URL
-                .defaultSuccessUrl("/facilities", true) // Redirect there on successful login
-                .permitAll()
-            )
-            
-            // 3. Configure access denied handling
-            .exceptionHandling(exception -> exception
-                .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    response.sendError(403, "Access Denied");
-                })
-            )
-            
-            // 3. Configure logout
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/") // Redirect to landing page on logout
-                .permitAll());
+                        .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .successHandler(authenticationHandler)
+                        .permitAll()
+                )
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.sendRedirect("/access-denied");
+                        })
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/")
+                        .permitAll());
 
         return http.build();
     }
-
 }

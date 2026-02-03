@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import start.spring.io.backend.model.Facility;
 import start.spring.io.backend.model.MaintenanceRequest;
 import start.spring.io.backend.model.User;
-import start.spring.io.backend.service.EmailService; // <--- Importar
+import start.spring.io.backend.service.EmailService;
 import start.spring.io.backend.service.FacilityService;
 import start.spring.io.backend.service.MaintenanceRequestService;
 import start.spring.io.backend.service.UserService;
@@ -23,7 +23,7 @@ public class MaintenanceRequestController {
     private final MaintenanceRequestService maintenanceService;
     private final FacilityService facilityService;
     private final UserService userService;
-    private final EmailService emailService; // <--- Inyectar servicio
+    private final EmailService emailService;
 
     public MaintenanceRequestController(MaintenanceRequestService maintenanceService,
                                         FacilityService facilityService,
@@ -37,16 +37,33 @@ public class MaintenanceRequestController {
 
     @GetMapping
     public String listRequests(Model model, @RequestParam(value = "filter", required = false) String filter) {
-        List<MaintenanceRequest> requests;
+        // 1. Obtener todas las requests para calcular estadísticas
+        List<MaintenanceRequest> allRequests = maintenanceService.getAllRequests();
+
+        // 2. Calcular estadísticas (Pending, In Progress, Resolved)
+        long pendingCount = allRequests.stream().filter(r -> "PENDING".equalsIgnoreCase(r.getStatus())).count();
+        long inprogressCount = allRequests.stream().filter(r -> "IN_PROGRESS".equalsIgnoreCase(r.getStatus())).count();
+        long resolvedCount = allRequests.stream().filter(r -> "RESOLVED".equalsIgnoreCase(r.getStatus())).count();
+
+        // 3. Filtrar la lista principal si es necesario
+        List<MaintenanceRequest> displayedRequests;
         if (filter != null && !filter.isEmpty()) {
-            requests = maintenanceService.getFilteredRequests(filter);
+            displayedRequests = maintenanceService.getFilteredRequests(filter);
         } else {
-            requests = maintenanceService.getAllRequests();
+            displayedRequests = allRequests;
         }
-        model.addAttribute("requests", requests);
-        model.addAttribute("filter", filter);
+
+        // 4. Pasar todo al modelo
+        model.addAttribute("requests", displayedRequests);
+        model.addAttribute("pendingCount", pendingCount);
+        model.addAttribute("inprogressCount", inprogressCount);
+        model.addAttribute("resolvedCount", resolvedCount);
+
+        model.addAttribute("selectedStatus", filter); // Para marcar el botón activo en el HTML
         model.addAttribute("currentPage", "maintenance");
-        return "maintenance-list";
+
+        // CORRECCIÓN: El nombre debe coincidir con tu archivo HTML (maintenance-request-list.html)
+        return "maintenance-request-list";
     }
 
     @GetMapping("/maintenance-request-form/{facilityId}")
@@ -68,12 +85,10 @@ public class MaintenanceRequestController {
                              @RequestParam("facilityId") Integer facilityId,
                              Authentication authentication) {
 
-        // 1. Vincular Facility
         Facility facility = facilityService.getFacilityById(facilityId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Facility ID"));
         maintenanceRequest.setFacility(facility);
 
-        // 2. Vincular Usuario (el que está logueado)
         String userEmail = "";
         String userName = "User";
 
@@ -86,14 +101,11 @@ public class MaintenanceRequestController {
             }
         }
 
-        // 3. Datos automáticos
         maintenanceRequest.setReportDate(LocalDateTime.now());
         maintenanceRequest.setStatus("PENDING");
 
-        // 4. Guardar
         maintenanceService.createRequest(maintenanceRequest);
 
-        // 5. ENVIAR CORREO DE CONFIRMACIÓN
         if (!userEmail.isEmpty()) {
             String subject = "Maintenance Request Received: " + facility.getName();
             String body = "Hello " + userName + ",\n\n" +
@@ -109,10 +121,13 @@ public class MaintenanceRequestController {
         return "redirect:/facilities";
     }
 
-    // Métodos para actualizar estado (solo admin/maintenance)
-    @PostMapping("/update-status/{id}")
-    public String updateStatus(@PathVariable Integer id, @RequestParam("status") String status) {
-        maintenanceService.updateRequestStatus(id, status);
+    // CORRECCIÓN: Método genérico para atender las URLs del HTML
+    // HTML llama a: /maintenance-requests/status/{id}/in-progress
+    @PostMapping("/status/{id}/{newStatus}")
+    public String updateStatusFromUrl(@PathVariable Integer id, @PathVariable String newStatus) {
+        // Convertimos "in-progress" -> "IN_PROGRESS"
+        String statusUpper = newStatus.replace("-", "_").toUpperCase();
+        maintenanceService.updateRequestStatus(id, statusUpper);
         return "redirect:/maintenance-requests";
     }
 }

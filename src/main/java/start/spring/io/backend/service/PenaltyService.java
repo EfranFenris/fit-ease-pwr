@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import start.spring.io.backend.model.Penalty;
+import start.spring.io.backend.model.User;
 import start.spring.io.backend.repository.PenaltyRepository;
 
 @Service
@@ -46,5 +47,9 @@ public class PenaltyService {
             return true;
         }
         return false;
+    }
+
+    public boolean existsPenalty(User user, String description) {
+        return repository.existsByUserAndDescription(user, description);
     }
 }

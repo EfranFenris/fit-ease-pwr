@@ -237,12 +237,64 @@
 
     // Generar opciones de 06:00 a 22:00
     const buildTimeSlots = () => {
+        // Guardar selección actual si existe
+        const currentVal = startTimeSelect.value;
+
         startTimeSelect.innerHTML = '<option value="" disabled selected>Select a start time</option>';
         for (let minutes = 360; minutes <= 1320; minutes += 30) {
             const option = document.createElement("option");
-            option.value = toTimeString(minutes);
-            option.textContent = toTimeString(minutes);
+            const timeStr = toTimeString(minutes);
+            option.value = timeStr;
+            option.textContent = timeStr;
             startTimeSelect.appendChild(option);
+        }
+
+        // Restaurar valor si existía
+        if (currentVal) startTimeSelect.value = currentVal;
+    };
+
+    // --- LÓGICA FILTRO HORAS PASADAS (+10 MIN) ---
+    const filterPastTimes = () => {
+        const now = new Date();
+        const selectedDateVal = bookingDateInput.value;
+
+        // Obtenemos la fecha de hoy en formato local
+        const localDate = new Date(now.getTime() - (now.getTimezoneOffset() * 60000))
+                            .toISOString().split('T')[0];
+
+        // Solo filtramos si el usuario selecciona HOY
+        if (selectedDateVal === localDate) {
+            // Minutos actuales del día
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            // Límite de corte: Ahora + 10 minutos
+            const cutoffMinutes = currentMinutes + 10;
+
+            Array.from(startTimeSelect.options).forEach(option => {
+                if (!option.value) return; // Ignorar placeholder
+
+                const slotMinutes = toMinutes(option.value);
+
+                // Si la hora del slot es menor al límite (ahora + 10), deshabilitar
+                if (slotMinutes < cutoffMinutes) {
+                    option.disabled = true;
+                    option.style.color = "#ccc"; // Visualmente desactivado
+
+                    // Si el usuario tenía seleccionada esa hora, limpiarla
+                    if (startTimeSelect.value === option.value) {
+                        startTimeSelect.value = "";
+                        endTimeInput.value = "";
+                    }
+                } else {
+                    option.disabled = false;
+                    option.style.color = ""; // Restaurar color
+                }
+            });
+        } else {
+            // Si es una fecha futura, habilitamos todas las horas
+            Array.from(startTimeSelect.options).forEach(option => {
+                option.disabled = false;
+                option.style.color = "";
+            });
         }
     };
 
@@ -258,35 +310,34 @@
         endTimeInput.value = toTimeString(endMinutes);
     };
 
-    // Establecer fecha mínima como hoy (solo si no estamos editando o si prefieres forzarlo siempre)
     const initMinDate = () => {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, "0");
-        const day = String(today.getDate()).padStart(2, "0");
-        bookingDateInput.min = `${year}-${month}-${day}`;
+        const now = new Date();
+        const localDate = new Date(now.getTime() - (now.getTimezoneOffset() * 60000))
+                            .toISOString().split('T')[0];
+        bookingDateInput.min = localDate;
     };
 
     // --- INICIALIZACIÓN ---
 
-    // 1. Construir el desplegable de horas
     buildTimeSlots();
+    initMinDate();
 
-    // 2. Pre-seleccionar la hora si viene del servidor (Edición o Re-booking)
+    // Pre-seleccionar la hora si viene del servidor
     const defaultTime = startTimeSelect.getAttribute("data-default-time");
     if (defaultTime) {
         startTimeSelect.value = defaultTime;
     }
 
-    // 3. Calcular la hora de fin inicial
+    // Ejecutar filtros iniciales
+    filterPastTimes(); // <--- IMPORTANTE ejecutarlo al cargar
     updateEndTime();
 
-    // 4. Bloquear fechas pasadas
-    initMinDate();
-
-    // Event Listeners para recálculos
+    // Event Listeners
     startTimeSelect.addEventListener("change", updateEndTime);
     durationSelect.addEventListener("change", updateEndTime);
+
+    // Al cambiar la fecha, re-evaluar qué horas están disponibles
+    bookingDateInput.addEventListener("change", filterPastTimes);
 </script>
 </body>
 </html>
