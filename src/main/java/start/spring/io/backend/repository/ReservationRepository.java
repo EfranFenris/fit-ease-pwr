@@ -7,13 +7,15 @@ import start.spring.io.backend.model.Reservation;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Integer> {
 
-    // Cambiado: findByUserId -> findByUser_UserId (entra en User y busca ID)
     List<Reservation> findByUser_UserId(Integer userId);
 
-    // Cambiado: findByUserIdAnd... -> findByUser_UserIdAnd...
     List<Reservation> findByUser_UserIdAndDateBetween(Integer userId, LocalDateTime start, LocalDateTime end);
 
-    List<Reservation> findByFacilityIdAndDateBetween(Integer facilityId, LocalDateTime start, LocalDateTime end);
+    // CAMBIO: Usamos Facility_FacilityId
+    List<Reservation> findByFacility_FacilityIdAndDateBetween(Integer facilityId, LocalDateTime start, LocalDateTime end);
 
     List<Reservation> findAllByDateBetween(LocalDateTime start, LocalDateTime end);
+
+    // CAMBIO: Usamos Facility_FacilityId
+    List<Reservation> findByFacility_FacilityIdAndDateAfter(Integer facilityId, LocalDateTime date);
 }

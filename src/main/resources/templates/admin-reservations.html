@@ -4,103 +4,217 @@
     <title>Manager Dashboard</title>
     <th:block th:replace="~{fragments/navbar :: nav-header}"></th:block>
     <style>
-        /* Reutilizamos tus estilos base */
-        :root { --bg: #f5f7fb; --card: #ffffff; --text: #0f172a; --muted: #64748b; --danger: #ef4444; --success: #22c55e; }
+        :root {
+            --primary: #4b3df0;
+            --danger: #ef4444;
+            --bg: #f5f7fb;
+            --card-bg: #ffffff;
+            --text: #1f2933;
+            --muted: #64748b;
+        }
         body { margin: 0; font-family: "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
-        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
 
-        .section-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; color: #333; display: flex; align-items: center; justify-content: space-between; }
-        .badge-count { background: #4f46e5; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; margin-left: 10px; }
+        main {
+            padding: 30px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
 
-        /* TABLAS */
-        .admin-table { width: 100%; background: var(--card); border-radius: 12px; border-collapse: collapse; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 40px; }
-        .admin-table th, .admin-table td { padding: 16px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        .admin-table th { background: #f8fafc; font-weight: 600; color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        .admin-table tr:last-child td { border-bottom: none; }
-        .admin-table tr:hover { background: #f8fafc; }
+        h1, h2 { margin-top: 0; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 
-        .btn-sm { padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; display: inline-block; }
-        .btn-penalty { background: #fee2e2; color: #991b1b; }
-        .btn-penalty:hover { background: #fecaca; }
+        /* GRID DEL DASHBOARD */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
 
-        /* ETIQUETAS DE TIPO DE PENALTY */
-        .tag { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        @media (max-width: 900px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            height: 100%;
+        }
+
+        /* Tablas */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; color: #666; font-size: 13px; border-bottom: 1px solid #eee; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: middle; }
+
+        /* Botones */
+        .btn { padding: 8px 16px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; font-size: 13px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-outline { border: 1px solid #ccc; background: white; color: #333; }
+
+        /* Etiquetas */
+        .tag { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; display: inline-block;}
         .tag-noshow { background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
         .tag-late { background: #fff7ed; color: #f97316; border: 1px solid #fed7aa; }
-        .empty-msg { text-align: center; padding: 30px; color: var(--muted); font-style: italic; }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-open { display: flex; }
+
+        .modal-content {
+            background: white;
+            width: 400px;
+            padding: 24px;
+            border-radius: 12px;
+            position: relative; /* Para posicionar la X */
+        }
+
+        /* Estilo para la X de cerrar */
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-modal:hover { color: #333; }
+
+        form label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; }
+        form input, form select, form textarea { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
     </style>
 </head>
 <body>
+
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<div class="container">
-
-    <div class="section-title">
-        <span>📅 Today's Reservations (Roll Call)</span>
-        <span class="badge-count" th:text="${#lists.size(todaysReservations)}">0</span>
+<main>
+    <div class="section-header">
+        <h1>Manager Dashboard</h1>
     </div>
 
-    <table class="admin-table" th:if="${!#lists.isEmpty(todaysReservations)}">
-        <thead>
-        <tr>
-            <th>Time</th>
-            <th>Facility</th>
-            <th>User (Email)</th> <th>Participants</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="card : ${todaysReservations}">
-            <td>
-                <span style="font-weight:600;" th:text="${#temporals.format(card.startDateTime, 'HH:mm')}"></span> -
-                <span th:text="${#temporals.format(card.endDateTime, 'HH:mm')}"></span>
-            </td>
-            <td th:text="${card.facilityName}">Facility</td>
+    <div class="dashboard-grid">
 
-            <td>
-                <span style="font-weight: 600; display: block;" th:text="${card.reservation.user.name}">Name</span>
-                <span style="font-size: 0.85em; color: #666;" th:text="${card.reservation.user.email}">Email</span>
-            </td>
+        <div class="card">
+            <h2>📅 Today's Reservations</h2>
+            <p style="color:#666; font-size:14px; margin-bottom: 20px;">Mark users who did not show up.</p>
 
-            <td th:text="${card.participants}">4</td>
-        </tr>
-        </tbody>
-    </table>
-    <div th:if="${#lists.isEmpty(todaysReservations)}" class="empty-msg">
-        No reservations scheduled for today.
+            <table th:if="${!#lists.isEmpty(todaysReservations)}">
+                <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Details</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="card : ${todaysReservations}">
+                    <td>
+                        <div style="font-weight:bold" th:text="${#temporals.format(card.startDateTime, 'HH:mm')}">10:00</div>
+                        <div style="color:#666; font-size:0.9em" th:text="${#temporals.format(card.endDateTime, 'HH:mm')}">11:00</div>
+                    </td>
+                    <td>
+                        <div style="color:var(--primary); font-weight:600" th:text="${card.facilityName}">Court 1</div>
+                        <div th:text="${card.reservation.user.name}">User Name</div>
+                        <div style="font-size:0.85em; color:#888" th:text="${card.reservation.user.email}">email</div>
+                    </td>
+                    <td>
+                        <form th:if="${card.startDateTime.plusMinutes(10).isBefore(#temporals.createNow())}"
+                              th:action="@{/reservations/admin/no-show/{id}(id=${card.reservation.reservationId})}"
+                              method="post">
+                            <button type="submit" class="btn btn-danger"
+                                    onclick="return confirm('Mark as No-Show? This will penalize the user.')">
+                                 Mark No-Show
+                            </button>
+                        </form>
+
+                        <div th:unless="${card.startDateTime.plusMinutes(10).isBefore(#temporals.createNow())}"
+                             style="color: #999; font-size: 0.9em; font-style: italic;">
+                            <span title="You can only mark No-Show 10 mins after start time">⏳ Wait 10m after start</span>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div th:if="${#lists.isEmpty(todaysReservations)}" style="padding: 20px; text-align: center; color: #999;">
+                No reservations for today.
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-header" style="margin-bottom: 15px;">
+                <h2 style="margin:0">⚠️ Active Penalties</h2>
+                <button onclick="document.getElementById('penaltyModal').classList.add('modal-open')" class="btn btn-primary">
+                    + Apply Manual Penalty
+                </button>
+            </div>
+
+            <table th:if="${!#lists.isEmpty(penalties)}">
+                <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Reason</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${penalties}">
+                    <td>
+                        <strong th:text="${p.user.name}">John</strong><br>
+                        <small th:text="${#temporals.format(p.datehour, 'dd MMM')}">01 Feb</small>
+                    </td>
+                    <td>
+                        <span class="tag tag-noshow" th:if="${#strings.contains(p.description, 'No-Show')}">No Show</span>
+                        <span class="tag tag-late" th:if="${#strings.contains(p.description, 'Late cancellation')}">Late</span>
+                        <div th:unless="${#strings.contains(p.description, 'No-Show') or #strings.contains(p.description, 'Late cancellation')}"
+                             th:text="${p.description}" style="font-size:0.9em">Reason</div>
+                    </td>
+                    <td>
+                        <a th:href="@{/penalties/delete/{id}(id=${p.penaltyId})}" class="btn btn-outline" style="padding: 4px 10px; font-size: 12px;"
+                           onclick="return confirm('Remove this penalty?')">Remove</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div th:if="${#lists.isEmpty(penalties)}" style="padding: 20px; text-align: center; color: #999;">
+                No active penalties found.
+            </div>
+        </div>
+
     </div>
+</main>
 
+<div id="penaltyModal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="close-modal" onclick="document.getElementById('penaltyModal').classList.remove('modal-open')">&times;</span>
 
-    <div class="section-title" style="margin-top: 50px;">
-        <span>⚠️ Penalty Log</span>
+        <h3 style="margin-top:0;">Apply Manual Penalty</h3>
+        <form th:action="@{/penalties/add}" th:object="${newPenalty}" method="post">
+
+            <label>Select User</label>
+            <select name="userId" required>
+                <option value="" disabled selected>-- Choose User --</option>
+                <option th:each="u : ${users}" th:value="${u.userId}" th:text="${u.name} + ' (' + ${u.email} + ')'"></option>
+            </select>
+
+            <label>Reason / Description</label>
+            <textarea th:field="*{description}" placeholder="e.g. Damaged equipment" required></textarea>
+
+            <label>Date (Optional, defaults to now)</label>
+            <input type="datetime-local" th:field="*{datehour}" />
+
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                <button type="button" class="btn btn-outline" onclick="document.getElementById('penaltyModal').classList.remove('modal-open')">Cancel</button>
+                <button type="submit" class="btn btn-danger">Apply Penalty</button>
+            </div>
+        </form>
     </div>
-
-    <table class="admin-table" th:if="${!#lists.isEmpty(penalties)}">
-        <thead>
-        <tr>
-            <th>Date</th>
-            <th>User</th> <th>Type</th>
-            <th>Reason</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="penalty : ${penalties}">
-            <td th:text="${#temporals.format(penalty.datehour, 'dd/MM/yyyy HH:mm')}">Date</td>
-
-            <td>
-                <span style="font-weight: 600; display: block;" th:text="${penalty.user.name}">Name</span>
-                <span style="font-size: 0.85em; color: #666;" th:text="${penalty.user.email}">Email</span>
-            </td>
-
-            <td>
-                <span class="tag tag-noshow" th:if="${#strings.contains(penalty.description, 'No-Show')}">No Show</span>
-                <span class="tag tag-late" th:if="${#strings.contains(penalty.description, 'Late cancellation')}">Late Cancel</span>
-                <span class="tag" th:unless="${#strings.contains(penalty.description, 'No-Show') or #strings.contains(penalty.description, 'Late cancellation')}">General</span>
-            </td>
-            <td th:text="${penalty.description}">Description</td>
-        </tr>
-        </tbody>
-    </table>
 </div>
 
 </body>

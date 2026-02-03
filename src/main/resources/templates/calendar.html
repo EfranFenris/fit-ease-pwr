@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Facility Schedule</title>
+    <th:block th:replace="~{fragments/navbar :: nav-header}"></th:block>
+
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --text: #1f2933;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        main {
+            padding: 28px 40px 48px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header h2 { margin: 0; font-size: 24px; }
+        .page-header p { margin: 4px 0 0; color: #64748b; }
+
+        /* Contenedor del Calendario */
+        #calendar-container {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+            min-height: 700px;
+        }
+
+        /* Personalización de FullCalendar para que coincida con tu estilo */
+        .fc-toolbar-title { font-size: 1.25rem !important; }
+        .fc-button-primary {
+            background-color: #4b3df0 !important;
+            border-color: #4b3df0 !important;
+        }
+        .fc-button-primary:hover {
+            background-color: #3a2fd6 !important;
+            border-color: #3a2fd6 !important;
+        }
+        .fc-event { cursor: pointer; border: none !important; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main>
+    <div class="page-header">
+        <h2>Facility Schedule</h2>
+        <p>Check availability. Colored blocks represent occupied slots.</p>
+    </div>
+
+    <div id="calendar-container">
+        <div id='calendar'></div>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridWeek', // Vista semanal por defecto
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            slotMinTime: '06:00:00', // El calendario empieza a las 6 AM
+            slotMaxTime: '23:00:00', // Termina a las 11 PM
+            allDaySlot: false,       // Ocultar fila de "todo el día"
+            nowIndicator: true,      // Muestra línea de la hora actual
+
+            // Aquí es donde ocurre la magia: conecta con tu Controller
+            events: '/calendar/events',
+
+            eventClick: function(info) {
+                alert('Slot occupied: ' + info.event.title +
+                      '\nStart: ' + info.event.start.toLocaleTimeString() +
+                      '\nEnd: ' + info.event.end.toLocaleTimeString());
+            }
+        });
+
+        calendar.render();
+    });
+</script>
+
+</body>
+</html>

@@ -13,15 +13,15 @@ public class Reservation {
     @Column(name = "reservationid")
     private Integer reservationId;
 
-    // CAMBIO IMPORTANTE: Relación con User
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "userid", nullable = false)
     private User user;
 
-    @Column(name = "facilityid", nullable = false)
-    private Integer facilityId;
+    // --- CAMBIO CLAVE: Usamos Objeto Facility, no Integer ---
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "facilityid", nullable = false)
+    private Facility facility;
 
-    // ... resto de campos iguales ...
     @Column(name = "date", nullable = false)
     private LocalDateTime date;
 
@@ -39,31 +39,27 @@ public class Reservation {
 
     public Reservation() {}
 
-    // Getters y Setters Actualizados
     public Integer getReservationId() { return reservationId; }
     public void setReservationId(Integer reservationId) { this.reservationId = reservationId; }
 
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
 
-    // Helper para mantener compatibilidad si algún sitio pide getUserId()
-    public Integer getUserId() { return user != null ? user.getUserId() : null; }
+    // Nuevos Getters/Setters para Facility
+    public Facility getFacility() { return facility; }
+    public void setFacility(Facility facility) { this.facility = facility; }
 
-    public Integer getFacilityId() { return facilityId; }
-    public void setFacilityId(Integer facilityId) { this.facilityId = facilityId; }
+    // Helper: Mantiene compatibilidad para obtener el ID desde el objeto
+    public Integer getFacilityId() { return facility != null ? facility.getFacilityId() : null; }
 
     public LocalDateTime getDate() { return date; }
     public void setDate(LocalDateTime date) { this.date = date; }
-
     public LocalTime getStartTime() { return startTime; }
     public void setStartTime(LocalTime startTime) { this.startTime = startTime; }
-
     public LocalTime getEndTime() { return endTime; }
     public void setEndTime(LocalTime endTime) { this.endTime = endTime; }
-
     public Integer getParticipants() { return participants; }
     public void setParticipants(Integer participants) { this.participants = participants; }
-
     public String getPurpose() { return purpose; }
     public void setPurpose(String purpose) { this.purpose = purpose; }
 }

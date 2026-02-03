@@ -9,7 +9,7 @@ import start.spring.io.backend.service.UserService;
 
 @Controller
 @RequestMapping("/users")
-@PreAuthorize("hasRole('admin')")
+@PreAuthorize("hasRole('admin')") // Solo Admin entra aquí
 public class UserController {
 
     private final UserService userService;
@@ -40,8 +40,15 @@ public class UserController {
 
     @GetMapping("/edit/{id}")
     public String editUserForm(@PathVariable Integer id, Model model) {
-        User user = userService.getUserById(id).orElseThrow(() -> new IllegalArgumentException("Invalid user Id:" + id));
+        User user = userService.getUserById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid user Id:" + id));
+
         model.addAttribute("user", user);
+
+        // Configuración para Admin
+        model.addAttribute("postUrl", "/users/edit/" + id);
+        model.addAttribute("isAdminMode", true); // Esto mostrará el selector de roles
+
         return "user-edit";
     }
 

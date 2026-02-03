@@ -59,16 +59,24 @@
     <div class="nav-grid-container">
 
         <div class="nav-column-left">
-            <a th:href="@{/facilities}">
+            <a sec:authorize="hasAnyRole('user', 'admin')" th:href="@{/facilities}">
+                <img th:src="@{/images/logo.png}" alt="Logo" style="height: 42px; width: auto;">
+            </a>
+            <a sec:authorize="hasRole('maintenance')" th:href="@{/maintenance-requests}">
                 <img th:src="@{/images/logo.png}" alt="Logo" style="height: 42px; width: auto;">
             </a>
         </div>
 
         <ul class="nav-column-center" sec:authorize="isAuthenticated()">
 
-            <li>
+            <li sec:authorize="hasAnyRole('user', 'admin')">
                 <a th:href="@{/facilities}" class="nav-item"
                    th:classappend="${currentPage == 'facilities'} ? 'active' : ''">Facilities</a>
+            </li>
+
+            <li sec:authorize="hasAnyRole('user', 'admin', 'maintenance')">
+                <a th:href="@{/calendar}" class="nav-item"
+                   th:classappend="${currentPage == 'calendar'} ? 'active' : ''">Calendar</a>
             </li>
 
             <li sec:authorize="hasRole('user')">
@@ -81,20 +89,32 @@
                    th:classappend="${currentPage == 'manager'} ? 'active' : ''">Penalties</a>
             </li>
 
-            <li sec:authorize="hasRole('maintenance')">
+            <li sec:authorize="hasAnyRole('maintenance')">
                 <a th:href="@{/maintenance-requests}" class="nav-item"
                    th:classappend="${currentPage == 'maintenance'} ? 'active' : ''">Maintenance</a>
             </li>
 
+            <li sec:authorize="hasRole('admin')">
+                <a th:href="@{/users}" class="nav-item"
+                   th:classappend="${currentPage == 'users'} ? 'active' : ''">Users</a>
+            </li>
         </ul>
+
         <div class="nav-column-right">
             <div sec:authorize="!isAuthenticated()" style="display: flex; gap: 12px;">
                 <a th:href="@{/login}" class="auth-text" style="border: 2px solid #5D5FEF; padding: 8px 16px; border-radius: 8px; color: #5D5FEF;">Sign in</a>
                 <a th:href="@{/signup}" class="auth-text" style="background: #5D5FEF; color: white; padding: 8px 16px; border-radius: 8px;">Sign up</a>
             </div>
-            <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display:inline;">
-                <button type="submit" class="auth-text">↪ Log out</button>
-            </form>
+
+            <div sec:authorize="isAuthenticated()" style="display: flex; align-items: center; gap: 15px;">
+                <a th:href="@{/profile}" class="nav-item"
+                   style="color: #4b3df0;"
+                   th:text="${session.fullName != null ? session.fullName : #authentication.name}">My Profile</a>
+
+                <form th:action="@{/logout}" method="post" style="margin:0;">
+                    <button type="submit" class="auth-text">↪ Log out</button>
+                </form>
+            </div>
         </div>
 
     </div>

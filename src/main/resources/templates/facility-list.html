@@ -13,8 +13,11 @@
             --border: #e5e7eb;
             --bg: #f5f7fb;
             --card-bg: #ffffff;
-            --available: #22c55e;
-            --unavailable: #94a3b8;
+
+            /* COLORES DE ESTADO ACTUALIZADOS */
+            --available: #22c55e;   /* Verde */
+            --unavailable: #ef4444; /* Rojo (Antes gris) */
+            --maintenance: #f97316; /* Naranja (Nuevo) */
         }
 
         * {
@@ -32,20 +35,9 @@
             padding: 28px 32px 48px;
         }
 
-        .page-title {
-            margin-bottom: 6px;
-        }
-
-        .page-title h2 {
-            margin: 0;
-            font-size: 22px;
-        }
-
-        .page-title p {
-            margin: 4px 0 0;
-            color: var(--muted);
-            font-size: 14px;
-        }
+        .page-title { margin-bottom: 6px; }
+        .page-title h2 { margin: 0; font-size: 22px; }
+        .page-title p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
 
         .cards {
             display: grid;
@@ -70,11 +62,12 @@
             background-position: center;
         }
 
+        /* ESTILOS DE ETIQUETAS (BADGES) */
         .status {
             position: absolute;
             top: 12px;
             right: 12px;
-            background: var(--available);
+            background: var(--available); /* Por defecto Verde */
             color: #fff;
             padding: 4px 10px;
             border-radius: 999px;
@@ -82,8 +75,19 @@
             font-weight: 600;
         }
 
+        /* Rojo para Unavailable */
         .status-unavailable {
-            background: var(--unavailable);
+            background: var(--unavailable) !important;
+        }
+
+        /* Naranja para Maintenance */
+        .status-maintenance {
+            background: var(--maintenance) !important;
+        }
+
+        /* Verde explícito (opcional, ya que es el default) */
+        .status-available {
+            background: var(--available) !important;
         }
 
         .card-body {
@@ -118,6 +122,7 @@
             gap: 8px;
         }
 
+        /* ESTILOS DE BOTONES */
         .btn {
             text-decoration: none;
             text-align: center;
@@ -125,20 +130,28 @@
             border-radius: 10px;
             font-weight: 600;
             font-size: 14px;
+            border: none; /* <--- ESTO QUITA EL BORDE NEGRO */
+            cursor: pointer;
+            display: inline-block;
+            width: 100%;
         }
 
         .btn-primary {
             background: var(--primary);
             color: #fff;
         }
-
         .btn-primary:hover {
             background: var(--primary-dark);
         }
 
-        .btn-secondary {
-            background: var(--secondary);
-            color: #fff;
+        /* Nuevo estilo para botón rojo (Set Unavailable) */
+        .btn-danger {
+            background: #fee2e2;
+            color: #ef4444;
+            border: 1px solid #fecaca; /* Borde rojo suave opcional, o pon 'none' */
+        }
+        .btn-danger:hover {
+            background: #fecaca;
         }
 
         .empty-state {
@@ -152,10 +165,10 @@
         }
 
         .btn-disabled {
-            background-color: var(--unavailable) !important; /* Color gris */
+            background-color: #94a3b8 !important;
             color: #fff;
             cursor: not-allowed;
-            pointer-events: none; /* Esto evita que se pueda hacer click */
+            pointer-events: none;
             opacity: 0.7;
         }
     </style>
@@ -166,7 +179,7 @@
 <main>
     <div class="page-title">
         <h2>Available Sports Facilities</h2>
-        <p>Select a facility to make your booking or report an issue.</p>
+        <p sec:authorize="hasRole('user')">Select a facility to make your booking.</p>
     </div>
 
     <div class="cards" th:if="${!#lists.isEmpty(facilityCards)}">
@@ -191,12 +204,11 @@
                                 th:classappend="${card.statusLabel == 'Available'} ? 'btn-danger' : 'btn-primary'"
                                 th:text="${card.statusLabel == 'Available'} ? '⛔ Set Unavailable' : '✅ Set Available'"
                                 onclick="
-                    if (this.innerText.includes('Set Available')) {
-                        let msg = this.form.getAttribute('data-confirm-maintenance');
-                        if (msg) return confirm(msg);
-                    }
-                    return true;
-                ">
+                                    if (this.innerText.includes('Set Available')) {
+                                        let msg = this.form.getAttribute('data-confirm-maintenance');
+                                        if (msg) return confirm(msg);
+                                    }
+                                    return true;">
                         </button>
                     </form>
 
