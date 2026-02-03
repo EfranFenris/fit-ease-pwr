@@ -4,6 +4,10 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import org.springframework.format.annotation.DateTimeFormat;
 
+/**
+ * This class represents a report filed when something is broken.
+ * It links a User (who reported it) to a Facility (what is broken).
+ */
 @Entity
 @Table(name = "maintenance_request")
 public class MaintenanceRequest {
@@ -13,27 +17,35 @@ public class MaintenanceRequest {
     @Column(name = "requestid")
     private Integer requestId;
 
-    // --- RELACIONES JPA ---
-
-    @ManyToOne(fetch = FetchType.EAGER) // Trae al usuario automáticamente
+    /**
+     * @ManyToOne means "Many requests can be created by One User".
+     * FetchType.EAGER means when we load this request from the database,
+     * we want Java to automatically load the User details (name, email) too,
+     * because we need to know who sent it.
+     */
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "userid", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.EAGER) // Trae la facility automáticamente
+    /**
+     * Links the report to the specific court that needs fixing.
+     */
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "facilityid", nullable = false)
     private Facility facility;
 
+    /**
+     * Optionally, links to a maintenance staff member who is assigned to fix it.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "staffid")
     private User staff;
-
-    // --- CAMPOS NORMALES ---
 
     @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "status", nullable = false, length = 20)
-    private String status;
+    private String status; // e.g., "PENDING", "IN_PROGRESS", "FIXED"
 
     @Column(name = "reportdate", nullable = false)
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
@@ -47,7 +59,7 @@ public class MaintenanceRequest {
 
     public MaintenanceRequest() {}
 
-    // --- GETTERS Y SETTERS ---
+    // Getters and Setters
 
     public Integer getRequestId() { return requestId; }
     public void setRequestId(Integer requestId) { this.requestId = requestId; }
