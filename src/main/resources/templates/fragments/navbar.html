@@ -59,12 +59,7 @@
     <div class="nav-grid-container">
 
         <div class="nav-column-left">
-            <a sec:authorize="hasAnyRole('user', 'admin')" th:href="@{/facilities}">
-                <img th:src="@{/images/logo.png}" alt="Logo" style="height: 42px; width: auto;">
-            </a>
-            <a sec:authorize="hasRole('maintenance')" th:href="@{/maintenance-requests}">
-                <img th:src="@{/images/logo.png}" alt="Logo" style="height: 42px; width: auto;">
-            </a>
+            <img th:src="@{/images/logo.png}" alt="Logo" style="height: 42px; width: auto;">
         </div>
 
         <ul class="nav-column-center" sec:authorize="isAuthenticated()">
