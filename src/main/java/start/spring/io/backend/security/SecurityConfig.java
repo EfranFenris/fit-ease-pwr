@@ -55,7 +55,7 @@ public class SecurityConfig {
                         .requestMatchers("/reservations/**").hasAnyRole("user", "admin")
 
                         .requestMatchers("/maintenance-requests/maintenance-request-form/**", "/maintenance-requests/add").hasAnyRole("user", "admin")
-                        .requestMatchers("/maintenance-requests/**").hasAnyRole("maintenance", "admin")
+                        .requestMatchers("/maintenance-requests/**").hasAnyRole("maintenance")
 
                         .requestMatchers("/users/**").hasRole("admin")
                         .requestMatchers("/admin/**").hasRole("admin")

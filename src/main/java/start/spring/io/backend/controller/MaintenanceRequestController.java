@@ -37,7 +37,7 @@ public class MaintenanceRequestController {
 
     // LISTADO (Sin cambios)
     @GetMapping
-    public String listRequests(Model model, @RequestParam(value = "filter", required = false) String filter) {
+    public String listRequests(Model model, @RequestParam(value = "status", required = false) String filter) {
         List<MaintenanceRequest> allRequests = maintenanceService.getAllRequests();
 
         long pendingCount = allRequests.stream().filter(r -> "PENDING".equalsIgnoreCase(r.getStatus())).count();

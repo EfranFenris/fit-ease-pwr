@@ -35,8 +35,10 @@ public class AuthenticationHandler implements AuthenticationSuccessHandler {
         });
         // ----------------------------------------------------
 
-        if (roles.contains("ROLE_maintenance") || roles.contains("ROLE_admin")) {
+        if (roles.contains("ROLE_maintenance")) {
             response.sendRedirect("/maintenance-requests");
+        } else if(roles.contains("ROLE_admin")){
+            response.sendRedirect("/reservations/manager");
         } else {
             response.sendRedirect("/facilities");
         }
