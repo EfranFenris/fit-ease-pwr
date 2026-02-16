@@ -1,7 +1,7 @@
-# fit-ease-pwr — Backend (Spring Boot + Supabase PostgreSQL)
+# fit-ease-pwr — Web App (Spring Boot + Thymeleaf + Supabase PostgreSQL)
 
 ## What is this?
-- **Spring Boot** = Java backend server (HTTP) → http://localhost:8080  
+- **Spring Boot + Thymeleaf** = Java server-rendered web app → http://localhost:8080  
 - **Supabase PostgreSQL** = cloud database (no Docker needed!)  
 - **Maven Wrapper (`mvnw`)** = run without installing Maven
 
@@ -43,7 +43,18 @@ chmod +x mvnw
 ```
 
 ### 4. Check
-Open: http://localhost:8080/facilities → should show the facilities list if you are logged in.
+Open: http://localhost:8080 → shows a public landing page if you are not logged in.
+
+To access the app, log in at http://localhost:8080/login and then visit
+http://localhost:8080/facilities.
+
+**Default test accounts (created by `DataInitializer`):**
+- Admin: `admin@test.com` / password hash in code
+- User: `user@test.com` / password hash in code
+- Maintenance: `manteinance@test.com` / password hash in code
+- User (Marta): `marta@test.com` / password hash in code
+
+You can also create a new account at http://localhost:8080/signup.
 
 ---
 
